@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Checkout · Select Payment</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg:#0f172a; --card-bg:#1e293b; --accent:#38bdf8; --accent-hover:#0284c7;
+  --text:#f8fafc; --text-muted:#94a3b8; --border:#334155; --success:#22c55e;
+}
+* { box-sizing:border-box; margin:0; padding:0; font-family:'Segoe UI',Tahoma,sans-serif; }
+body { background:var(--bg); color:var(--text); min-height:100vh; display:flex; justify-content:center; align-items:center; padding:20px; }
+.checkout-container { max-width:1000px; width:100%; display:grid; grid-template-columns:1fr 1fr; gap:30px; background:var(--card-bg); border-radius:16px; padding:30px; border:1px solid var(--border); position:relative; }
+.product-section h2, .payment-section h2 { font-size:1.5rem; margin-bottom:15px; }
+
+/* ============================================================
+   ✕ CLOSE BUTTON
+   ============================================================ */
+.close-btn {
+  position:absolute;
+  top:14px;
+  right:14px;
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  border:1px solid var(--border);
+  background:var(--bg);
+  color:var(--text-muted);
+  font-size:1.1rem;
+  font-weight:700;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  transition:all 0.2s ease;
+  z-index:10;
+  line-height:1;
+}
+.close-btn:hover {
+  background:#ef4444;
+  color:#fff;
+  border-color:#ef4444;
+  transform:rotate(90deg);
+  box-shadow:0 0 16px rgba(239,68,68,0.5);
+}
+
+.gallery-thumbs { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
+.thumb-item { display:flex; flex-direction:column; align-items:center; gap:6px; cursor:pointer; transition:all 0.2s; }
+.thumb-item img { width:100%; aspect-ratio:4/3; object-fit:cover; border-radius:10px; border:2px solid transparent; background:var(--bg); max-width:120px; }
+.thumb-item:hover img { transform:scale(1.05); border-color:var(--accent); }
+.thumb-item.active img { border-color:var(--accent); box-shadow:0 0 0 3px rgba(56,189,248,0.4); transform:scale(1.05); }
+.thumb-label { font-size:0.65rem; color:var(--text-muted); text-transform:uppercase; background:rgba(15,23,42,0.7); padding:2px 8px; border-radius:4px; }
+.thumb-item.active .thumb-label { color:var(--accent); }
+.summary-fieldset { margin-top:25px; padding:10px 16px 16px; border:1px solid var(--border); border-radius:10px; background:var(--bg); }
+.summary-fieldset legend { font-size:0.8rem; color:var(--accent); text-transform:uppercase; font-weight:700; padding:0 8px; }
+.summary-fieldset .amount-row { display:flex; align-items:center; gap:8px; }
+.summary-fieldset .amount-row .currency { font-size:1.25rem; font-weight:700; color:var(--text); }
+.summary-fieldset .amount-row input {
+  flex:1; font-size:1.25rem; font-weight:700; background:transparent;
+  border:none; border-bottom:2px dashed var(--border); border-radius:0;
+  padding:6px 4px; color:var(--text); outline:none;
+}
+.summary-fieldset .amount-row input:focus { border-bottom-color:var(--accent); }
+.form-group { margin-bottom:18px; }
+label { display:block; font-size:0.875rem; margin-bottom:6px; color:var(--text-muted); font-weight:500; }
+input { width:100%; padding:12px 14px; background:var(--bg); border:1px solid var(--border); border-radius:10px; color:var(--text); font-size:1rem; outline:none; }
+input:focus { border-color:var(--accent); }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.payment-fieldset { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:18px; }
+.payment-fieldset legend { font-size:0.8rem; color:var(--accent); text-transform:uppercase; font-weight:700; padding:0 8px; }
+.info-item { margin-bottom:12px; }
+.info-item:last-child { margin-bottom:0; }
+.info-label { font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px; }
+.info-value { font-size:1rem; font-weight:600; display:flex; align-items:center; justify-content:space-between; }
+.copy-btn { background:var(--card-bg); border:1px solid var(--border); color:var(--accent); padding:4px 10px; border-radius:6px; font-size:0.8rem; cursor:pointer; }
+.copy-btn:hover { background:var(--accent); color:#0f172a; }
+.pay-btn { width:100%; padding:14px; background:var(--accent); color:#0f172a; font-weight:700; font-size:1rem; border:none; border-radius:10px; cursor:pointer; margin-top:10px; }
+.pay-btn:hover { background:var(--accent-hover); color:#fff; }
+.loader-overlay { display:none; flex-direction:column; justify-content:center; align-items:center; background:rgba(15,23,42,0.95); border-radius:16px; padding:40px 20px; text-align:center; }
+.green-spinner { width:50px; height:50px; border:5px solid rgba(34,197,94,0.2); border-radius:50%; border-top-color:var(--success); animation:spin 1s linear infinite; margin-bottom:20px; }
+@keyframes spin { to { transform:rotate(360deg); } }
+.instruction-box { display:none; background:var(--bg); border:1px solid var(--success); border-radius:12px; padding:20px; margin-top:10px; text-align:center; }
+.instruction-text { font-size:1.05rem; line-height:1.6; margin-bottom:20px; }
+.ref-badge { display:inline-block; background:rgba(34,197,94,0.2); color:var(--success); padding:4px 12px; border-radius:6px; font-weight:700; font-size:1.2rem; }
+.inline-note { background:#fff; color:#1f2937; padding:16px 18px; border-radius:12px; border:1px solid #e5e7eb; margin-bottom:18px; }
+.inline-note .note-text { font-size:0.9rem; line-height:1.5; color:#374151; margin-bottom:14px; }
+.inline-note .btn-primary { background:#2563eb; color:#fff; border:none; padding:8px 18px; font-size:0.8125rem; font-weight:600; border-radius:8px; cursor:pointer; }
+.inline-note .note-actions { display:flex; justify-content:flex-end; }
+@media (max-width:768px){
+  .checkout-container{grid-template-columns:1fr; padding-top:50px;}
+  .close-btn{top:10px; right:10px;}
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div class="checkout-container">
+
+  <!-- ✕ CLOSE / HOME BUTTON -->
+  <button
+    type="button"
+    class="close-btn"
+    title="Back to Home"
+    aria-label="Close and return to home"
+    onclick="goHome()"
+  >✕</button>
+
+  <div class="product-section">
+    <h2>Select Payment Option</h2>
+    <div class="gallery-thumbs">
+      <div class="thumb-item" onclick="selectPaymentMethod('orange', this)">
+        <img src="https://i.postimg.cc/VdHWL6Mf/IMG-4358.jpg" alt="Orange Money">
+        <span class="thumb-label">Orange Money</span>
+      </div>
+      <div class="thumb-item" onclick="selectPaymentMethod('momo', this)">
+        <img src="https://i.postimg.cc/F7nVsRcF/IMG-4359.jpg" alt="Mobile Money">
+        <span class="thumb-label">Mobile Money</span>
+      </div>
+      <div class="thumb-item" onclick="selectPaymentMethod('bitcoin', this)">
+        <img src="https://i.postimg.cc/tYmNCTPX/IMG-4361.jpg" alt="Bitcoin">
+        <span class="thumb-label">Bitcoin</span>
+      </div>
+      <div class="thumb-item" onclick="selectPaymentMethod('visa', this)">
+        <img src="https://i.postimg.cc/Whfwb3rs/IMG-4362.jpg" alt="Visa Card">
+        <span class="thumb-label">Visa Card</span>
+      </div>
+      <div class="thumb-item" onclick="selectPaymentMethod('paypal', this)">
+        <img src="https://i.postimg.cc/8jnmP5WD/IMG-4364.jpg" alt="PayPal">
+        <span class="thumb-label">PayPal</span>
+      </div>
+      <div class="thumb-item" onclick="selectPaymentMethod('mastercard', this)">
+        <img src="https://i.postimg.cc/BXvC0D86/IMG-4365.jpg" alt="Mastercard">
+        <span class="thumb-label">Mastercard</span>
+      </div>
+    </div>
+
+    <!-- INTERACTIVE AMOUNT FIELDSET (CFA) -->
+    <fieldset class="summary-fieldset">
+      <legend>Amount</legend>
+      <div class="amount-row">
+        <input
+          type="number"
+          id="amountInput"
+          placeholder="0"
+          min="0"
+          step="1"
+          value=""
+          oninput="updateAmountDisplay()"
+        >
+        <span class="currency">CFA</span>
+      </div>
+    </fieldset>
+  </div>
+
+  <div class="payment-section">
+    <h2 id="paymentMethodTitle"></h2>
+    <form id="paymentForm" onsubmit="startInitialProcess(event)">
+      <div id="noteContainer"></div>
+      <div id="dynamicPaymentContent"></div>
+      <div class="form-group">
+        <label for="email">Sender Email Receipt To</label>
+        <input type="email" id="email" placeholder="sender@example.com" required>
+      </div>
+      <div class="form-group">
+        <label for="phone">Sender Phone Number</label>
+        <input type="tel" id="phone" placeholder="+237 600 000 000">
+      </div>
+      <button type="submit" class="pay-btn" id="payButton">Pay 0 CFA</button>
+    </form>
+
+    <div class="loader-overlay" id="firstLoader">
+      <div class="green-spinner"></div>
+      <p style="font-weight:600;">Processing transaction details...</p>
+    </div>
+
+    <div class="instruction-box" id="instructionScreen">
+      <div class="instruction-text" id="instructionText"></div>
+      <button type="button" class="pay-btn" style="background:var(--success);" onclick="confirmPaymentAndSubscribe()">Confirm</button>
+    </div>
+
+    <div class="loader-overlay" id="supabaseWaitingLoader">
+      <div class="green-spinner"></div>
+      <p style="font-weight:600;">Waiting for Admin Confirmation...</p>
+      <p style="color:var(--text-muted); font-size:0.85rem; margin-top:5px;">Your transaction is being verified on our platform.</p>
+    </div>
+
+    <div id="finalSuccessMsg" class="instruction-box" style="border-color:var(--success);">
+      <p style="color:var(--success); font-size:1.2rem; font-weight:700;">✅ Payment Confirmed!</p>
+      <p style="color:var(--text-muted); font-size:0.95rem;">Your payment has been successfully verified in our system.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ============================================================
+   ⚠️ REPLACE THESE WITH YOUR REAL SUPABASE CREDENTIALS
+   ============================================================ */
+const SUPABASE_URL = "https://YOUR-PROJECT-ID.supabase.co";
+const SUPABASE_ANON_KEY = "YOUR-ANON-PUBLIC-KEY";
+
+let supabase = null;
+try {
+  if (window.supabase && typeof window.supabase.createClient === 'function') {
+    supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    console.log("✅ Supabase client initialized");
+  } else {
+    console.warn("⚠️ Supabase library not loaded.");
+  }
+} catch (err) {
+  console.error("❌ Supabase init error:", err);
+}
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let selectedProvider = null;
+let activeNumber = '';
+let currentRecordId = null;
+let realtimeChannel = null;
+let currentAmount = 0;
+
+const USER_ID = "USR-98765";
+const MOMO_ORANGE_ACCOUNT_NAME = "Gh";
+const MOMO_ORANGE_ACCOUNT_NUMBER = "235";
+
+/* ============================================================
+   ✕ GO HOME — redirect to index.html
+   ============================================================ */
+function goHome() {
+  // Optional: clean up realtime channel before leaving
+  if (realtimeChannel && supabase) {
+    try { supabase.removeChannel(realtimeChannel); } catch(e) {}
+    realtimeChannel = null;
+  }
+  window.location.href = "index.html";
+}
+
+/* ============================================================
+   AMOUNT HANDLING (CFA)
+   ============================================================ */
+function updateAmountDisplay() {
+  const input = document.getElementById('amountInput');
+  const raw = parseFloat(input.value);
+  currentAmount = isNaN(raw) || raw < 0 ? 0 : Math.floor(raw);
+
+  document.getElementById('payButton').textContent =
+    'Pay ' + currentAmount.toLocaleString('fr-FR') + ' CFA';
+}
+
+/* ============================================================
+   CARD TEMPLATE
+   ============================================================ */
+const cardFieldsTemplate = `
+  <div class="form-group"><label>Cardholder Name</label><input type="text" id="cardholder" placeholder="John Doe"></div>
+  <div class="form-group"><label>Card Number</label><input type="text" id="cardnumber" placeholder="4532 •••• •••• 8954" maxlength="19"></div>
+  <div class="form-row">
+    <div class="form-group"><label>Expiry</label><input type="text" id="expiry" placeholder="MM/YY" maxlength="5"></div>
+    <div class="form-group"><label>CVC</label><input type="password" id="cvc" placeholder="•••" maxlength="4"></div>
+  </div>
+`;
+
+/* ============================================================
+   INLINE NOTE
+   ============================================================ */
+function renderNote() {
+  document.getElementById('noteContainer').innerHTML = `
+    <div class="inline-note" id="inlineNote">
+      <div class="note-text"><strong>📋 Reference Number Notice</strong><br>The user ID will be used as reference number for proper verification. Thank you.</div>
+      <div class="note-actions"><button type="button" class="btn-primary" onclick="closeNote()">Got it</button></div>
+    </div>`;
+}
+function closeNote() {
+  const n = document.getElementById('inlineNote');
+  if (n) n.remove();
+}
+
+/* ============================================================
+   SELECT PAYMENT METHOD
+   ============================================================ */
+function selectPaymentMethod(provider, element) {
+  selectedProvider = provider;
+  document.querySelectorAll('.thumb-item').forEach(i => i.classList.remove('active'));
+  element.classList.add('active');
+
+  const title = document.getElementById('paymentMethodTitle');
+  const content = document.getElementById('dynamicPaymentContent');
+  document.getElementById('noteContainer').innerHTML = '';
+
+  if (provider === 'orange') {
+    activeNumber = MOMO_ORANGE_ACCOUNT_NUMBER;
+    title.textContent = 'Orange Money Details';
+    content.innerHTML = `
+      <fieldset class="payment-fieldset">
+        <legend>Orange Money Account</legend>
+        <div class="info-item"><div class="info-label">Account Name</div><div class="info-value">${MOMO_ORANGE_ACCOUNT_NAME}</div></div>
+        <div class="info-item"><div class="info-label">Account Number</div><div class="info-value"><span>${MOMO_ORANGE_ACCOUNT_NUMBER}</span><button type="button" class="copy-btn" onclick="copyToClipboard('${MOMO_ORANGE_ACCOUNT_NUMBER}', this)">Copy</button></div></div>
+        <div class="info-item"><div class="info-label">Reference Number</div><div class="info-value" style="color:var(--success);">ref number: ${USER_ID}</div></div>
+      </fieldset>
+      <div class="form-group"><label>Account ID / Transaction ID</label><input type="text" id="accountId" placeholder="e.g. Txn #12345678"></div>`;
+    renderNote();
+  } else if (provider === 'momo') {
+    activeNumber = MOMO_ORANGE_ACCOUNT_NUMBER;
+    title.textContent = 'Mobile Money (MTN) Details';
+    content.innerHTML = `
+      <fieldset class="payment-fieldset">
+        <legend>Mobile Money Account</legend>
+        <div class="info-item"><div class="info-label">Account Name</div><div class="info-value">${MOMO_ORANGE_ACCOUNT_NAME}</div></div>
+        <div class="info-item"><div class="info-label">Account Number</div><div class="info-value"><span>${MOMO_ORANGE_ACCOUNT_NUMBER}</span><button type="button" class="copy-btn" onclick="copyToClipboard('${MOMO_ORANGE_ACCOUNT_NUMBER}', this)">Copy</button></div></div>
+        <div class="info-item"><div class="info-label">Reference Number</div><div class="info-value" style="color:var(--success);">ref number: ${USER_ID}</div></div>
+      </fieldset>
+      <div class="form-group"><label>Account ID / Transaction ID</label><input type="text" id="accountId" placeholder="e.g. Txn #12345678"></div>`;
+    renderNote();
+  } else if (provider === 'visa') {
+    title.textContent = 'Visa Card Details';
+    content.innerHTML = cardFieldsTemplate;
+  } else if (provider === 'mastercard') {
+    title.textContent = 'Mastercard Details';
+    content.innerHTML = cardFieldsTemplate;
+  } else if (provider === 'bitcoin') {
+    title.textContent = 'Bitcoin Payment';
+    content.innerHTML = `
+      <fieldset class="payment-fieldset">
+        <legend>Bitcoin Wallet</legend>
+        <div class="info-item"><div class="info-label">Bitcoin Deposit Address</div><div class="info-value" style="font-size:0.85rem;word-break:break-all;"><span>1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa</span><button type="button" class="copy-btn" onclick="copyToClipboard('1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa', this)">Copy</button></div></div>
+      </fieldset>`;
+  } else if (provider === 'paypal') {
+    title.textContent = 'PayPal Payment';
+    content.innerHTML = `
+      <fieldset class="payment-fieldset">
+        <legend>PayPal Account</legend>
+        <div class="info-item"><div class="info-label">PayPal Recipient</div><div class="info-value"><span>payments@example.com</span><button type="button" class="copy-btn" onclick="copyToClipboard('payments@example.com', this)">Copy</button></div></div>
+      </fieldset>`;
+  }
+}
+
+/* ============================================================
+   STEP 1: FORM SUBMIT → 5s LOADER → INSTRUCTION
+   ============================================================ */
+function startInitialProcess(e) {
+  e.preventDefault();
+  if (!selectedProvider) { alert("Please select a payment method first."); return; }
+
+  const email = document.getElementById('email').value.trim();
+  if (!email) return;
+
+  if (currentAmount <= 0) {
+    alert("Please enter a valid amount greater than 0.");
+    document.getElementById('amountInput').focus();
+    return;
+  }
+
+  document.getElementById('paymentForm').style.display = 'none';
+  document.getElementById('firstLoader').style.display = 'flex';
+
+  setTimeout(() => {
+    document.getElementById('firstLoader').style.display = 'none';
+    const label = selectedProvider === 'orange' ? 'Orange Money'
+                 : selectedProvider === 'momo' ? 'Mobile Money'
+                 : selectedProvider;
+    document.getElementById('instructionText').innerHTML =
+      `Payment of <strong>${currentAmount.toLocaleString('fr-FR')} CFA</strong> to the <strong>${label}</strong> number above <strong>(${activeNumber})</strong> should be made with the reference number:<br><br><span class="ref-badge">${USER_ID}</span>`;
+    document.getElementById('instructionScreen').style.display = 'block';
+  }, 5000);
+}
+
+/* ============================================================
+   STEP 2: CONFIRM → INSERT INTO SUPABASE → LISTEN FOR UPDATE
+   ============================================================ */
+async function confirmPaymentAndSubscribe() {
+  document.getElementById('instructionScreen').style.display = 'none';
+  document.getElementById('supabaseWaitingLoader').style.display = 'flex';
+
+  const email = document.getElementById('email').value.trim();
+  const phone = document.getElementById('phone').value
+    ? document.getElementById('phone').value.trim()
+    : 'N/A';
+  const accountIdElem = document.getElementById('accountId');
+  const accountId = accountIdElem ? accountIdElem.value.trim() : 'N/A';
+
+  if (!supabase) {
+    console.warn("⚠️ Supabase not configured. Simulating confirmation in 4s...");
+    setTimeout(() => {
+      document.getElementById('supabaseWaitingLoader').style.display = 'none';
+      document.getElementById('finalSuccessMsg').style.display = 'block';
+    }, 4000);
+    return;
+  }
+
+  try {
+    console.log("📤 Inserting payment record...");
+    const { data, error } = await supabase
+      .from('payments')
+      .insert([{
+        sender_email: email,
+        sender_phone: phone,
+        account_id: accountId,
+        payment_method: selectedProvider,
+        reference_number: USER_ID,
+        amount: currentAmount,
+        currency: 'CFA',
+        status: 'pending'
+      }])
+      .select();
+
+    if (error) {
+      console.error("❌ Supabase insert error:", error);
+      alert("Failed to save your payment. Please try again.\n\n" + error.message);
+      document.getElementById('supabaseWaitingLoader').style.display = 'none';
+      document.getElementById('instructionScreen').style.display = 'block';
+      return;
+    }
+
+    if (data && data.length > 0) {
+      currentRecordId = data[0].id;
+      console.log("✅ Payment record created. ID:", currentRecordId);
+      listenForConfirmation(currentRecordId);
+    }
+  } catch (err) {
+    console.error("❌ Unexpected error:", err);
+    alert("Unexpected error: " + err.message);
+    document.getElementById('supabaseWaitingLoader').style.display = 'none';
+    document.getElementById('instructionScreen').style.display = 'block';
+  }
+}
+
+/* ============================================================
+   STEP 3: REALTIME LISTENER
+   ============================================================ */
+function listenForConfirmation(recordId) {
+  if (!supabase) return;
+
+  if (realtimeChannel) {
+    supabase.removeChannel(realtimeChannel);
+    realtimeChannel = null;
+  }
+
+  console.log("👂 Listening for updates on record ID:", recordId);
+
+  realtimeChannel = supabase
+    .channel('payment-status-' + recordId)
+    .on(
+      'postgres_changes',
+      { event: 'UPDATE', schema: 'public', table: 'payments', filter: `id=eq.${recordId}` },
+      (payload) => {
+        console.log("🔔 Realtime update received:", payload);
+        if (payload.new && payload.new.status === 'confirmed') {
+          document.getElementById('supabaseWaitingLoader').style.display = 'none';
+          document.getElementById('finalSuccessMsg').style.display = 'block';
+          if (realtimeChannel) {
+            supabase.removeChannel(realtimeChannel);
+            realtimeChannel = null;
+          }
+        }
+      }
+    )
+    .subscribe((status) => console.log("📡 Realtime subscription status:", status));
+}
+
+/* ============================================================
+   COPY TO CLIPBOARD
+   ============================================================ */
+function copyToClipboard(text, btn) {
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = 'Copied!';
+    btn.style.background = '#22c55e';
+    btn.style.color = '#fff';
+    setTimeout(() => {
+      btn.textContent = orig;
+      btn.style.background = '';
+      btn.style.color = '';
+    }, 1500);
+  }).catch(err => console.error('Copy failed:', err));
+}
+
+/* ============================================================
+   ON PAGE LOAD
+   ============================================================ */
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('paymentForm').style.display = 'block';
+  document.getElementById('firstLoader').style.display = 'none';
+  document.getElementById('instructionScreen').style.display = 'none';
+  document.getElementById('supabaseWaitingLoader').style.display = 'none';
+  document.getElementById('finalSuccessMsg').style.display = 'none';
+  updateAmountDisplay();
+});
+</script>
+<script>
+const SUPABASE_URL = "https://jcuxmrkiyrnocmsphtwz.supabase.co";
+const SUPABASE_KEY = "sb_publishable__KwJfUjXVQ5qjGEx4OheJw_WuAe8q7q";
+
+const { createClient } = supabase;
+
+const supabaseClient = createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+</script>
+</body>
+</html>

@@ -1,0 +1,2577 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>bitfly mining</title>
+  
+  <!-- Supabase JS Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Font Awesome for Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Montserrat:wght@800;900&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-color: #f2f0f9;
+      --card-bg: #f8f6fd;
+      --text-main: #2b1c40;
+      --text-muted: #8b859e;
+      --primary-gradient: linear-gradient(135deg, #e86ab2, #6051d8);
+      --button-gradient: linear-gradient(90deg, #d868bd, #5b50d6);
+      --shadow-soft: 0 10px 25px rgba(130, 110, 180, 0.12);
+      --shadow-input: inset 0 2px 4px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(150, 140, 180, 0.08);
+      --gold-accent: #f7a600;
+
+      /* Account Center Variables */
+      --ac-bg: #050b2e;
+      --ac-card: #0b1442;
+      --ac-text: #f8fafc;
+      --ac-muted: #94a3b8;
+      --ac-border: #1a275c;
+      --ac-blue: #3b82f6;
+      --ac-blue-light: #172554;
+      --ac-shadow: 0 15px 35px rgba(0, 0, 0, 0.35);
+      --ac-gradient: linear-gradient(135deg, #2563eb, #1e40af, #172554);
+      --ac-green: #16a34a;
+      
+      /* Black & Gold Dashboard Theme Variables */
+      --db-bg: #0b0b0d;
+      --db-card: #141419;
+      --db-border: #2a2a35;
+      --db-text: #f0f0f5;
+      --db-muted: #a0a0b0;
+      --gold-primary: #d4af37;
+      --gold-hover: #f3e5ab;
+      --gold-gradient: linear-gradient(135deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+      --shadow-color: rgba(212, 175, 55, 0.15);
+    }
+
+    [data-theme="light"] {
+      --ac-bg: #f4f7fb;
+      --ac-card: #ffffff;
+      --ac-text: #172033;
+      --ac-muted: #718096;
+      --ac-border: #e5eaf1;
+      --ac-blue: #2563eb;
+      --ac-blue-light: #eff6ff;
+      --ac-shadow: 0 12px 35px rgba(15, 23, 42, .07);
+      --ac-gradient: linear-gradient(135deg, #2563eb 0%, #1d4ed8 55%, #173ea5 100%);
+      
+      --db-bg: #f4f4f7;
+      --db-card: #ffffff;
+      --db-border: #e1e1e8;
+      --db-text: #1a1a24;
+      --db-muted: #626273;
+      --shadow-color: rgba(0, 0, 0, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    body {
+      background-color: #ffffff;
+      color: #333333;
+      min-height: 100vh;
+    }
+
+    /* PAGE VIEW TOGGLES */
+    .page-view {
+      display: none;
+    }
+    .page-view.active-view {
+      display: block;
+    }
+
+    /* Hero Section Container */
+    .hero-banner {
+      position: relative;
+      width: 100%;
+      min-height: 600px;
+      background: #000000 url('https://i.postimg.cc/RJfBYkLL/IMG-4336.jpg') no-repeat center center / cover;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 24px 60px 24px;
+      overflow: hidden;
+    }
+
+    .hero-banner::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.2);
+      z-index: 1;
+    }
+
+    /* Navbar & Brand Styles */
+    .navbar {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+
+    .nav-left-group {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .brand-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .brand-logo-right {
+      height: 46px;
+      width: auto;
+      border-radius: 0;
+      object-fit: contain;
+      box-shadow: none;
+      border: none;
+    }
+
+    .brand-name {
+      color: #ffffff;
+      font-size: 20px;
+      font-weight: 700;
+      text-transform: lowercase;
+      letter-spacing: 0.5px;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    }
+
+    .brand-name-gold {
+      color: var(--gold-accent);
+    }
+
+    .hamburger-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hamburger-icon {
+      width: 32px;
+      height: 32px;
+      fill: #ffffff;
+      filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.6));
+    }
+
+    /* Side Drawer Navigation */
+    .nav-drawer {
+      position: fixed;
+      top: 0;
+      left: -300px;
+      width: 300px;
+      height: 100%;
+      background-color: #050b2e;
+      z-index: 1000;
+      transition: left 0.3s ease-in-out;
+      padding: 20px;
+      box-shadow: 4px 0 15px rgba(0, 0, 0, 0.3);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .nav-drawer.open {
+      left: 0;
+    }
+
+    .drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+      margin-bottom: 20px;
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      color: #ffffff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px;
+      border-radius: 50%;
+      transition: background-color 0.2s ease;
+    }
+
+    .close-btn:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+
+    .close-icon {
+      width: 24px;
+      height: 24px;
+      fill: #ffffff;
+    }
+
+    .nav-links {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .nav-links a {
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 18px;
+      font-weight: 600;
+      transition: color 0.2s ease;
+      display: block;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .nav-links a:hover {
+      color: var(--gold-accent);
+    }
+
+    .drawer-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      z-index: 999;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+    }
+
+    .drawer-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .hero-content {
+      margin-top: 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      max-width: 680px;
+      z-index: 10;
+    }
+
+    .subtitle {
+      font-family: "Georgia", "Times New Roman", serif;
+      font-style: italic;
+      font-size: 24px;
+      line-height: 1.35;
+      color: #ffffff;
+      margin-bottom: 16px;
+      position: relative;
+      display: inline-block;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+    }
+
+    .subtitle::after {
+      content: '';
+      display: block;
+      width: 110px;
+      height: 3px;
+      background-color: #e5b364;
+      margin: 14px auto 0 auto;
+      border-radius: 1px;
+    }
+
+    .main-title {
+      font-family: 'Montserrat', sans-serif;
+      font-size: 64px;
+      font-weight: 900;
+      color: #ffffff;
+      margin: 16px 0 20px 0;
+      letter-spacing: -1px;
+      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.8);
+      text-transform: lowercase;
+    }
+
+    .main-title .gold-text {
+      font-family: 'Cinzel', serif;
+      color: var(--gold-accent);
+      background: linear-gradient(180deg, #ffd875 0%, #f7a600 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+      letter-spacing: 1px;
+    }
+
+    .description {
+      font-size: 20px;
+      line-height: 1.45;
+      color: #ffffff;
+      max-width: 620px;
+      margin-bottom: 40px;
+      font-weight: 400;
+      text-shadow: 0 2px 5px rgba(0, 0, 0, 0.7);
+    }
+
+    .glow-button {
+      position: relative;
+      padding: 14px 30px;
+      font-size: 16px;
+      font-weight: 600;
+      color: white;
+      background: #111827;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      overflow: hidden;
+      z-index: 1;
+    }
+
+    .glow-button::before {
+      content: "";
+      position: absolute;
+      inset: -3px;
+      background: conic-gradient(
+          from 0deg,
+          transparent 0deg,
+          transparent 40deg,
+          #008cff 180deg,
+          #00c8ff 350deg,
+          transparent 360deg
+      );
+      animation: rotateGlow 2s linear infinite;
+      z-index: -2;
+    }
+
+    .glow-button::after {
+      content: "";
+      position: absolute;
+      inset: 3px;
+      background: #111827;
+      border-radius: 8px;
+      z-index: -1;
+    }
+
+    @keyframes rotateGlow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    /* INVESTMENT PLANS FULL PAGE STYLING */
+    .investment-plans-wrapper {
+      background: #050b2e;
+      color: white;
+      padding: 30px 20px 80px 20px;
+      width: 100%;
+      min-height: 100vh;
+      position: relative;
+    }
+
+    /* Circular Back Arrow Button */
+    .back-circle-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 44px;
+      height: 44px;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #ffffff;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 22px;
+      font-weight: 700;
+      transition: all 0.2s ease;
+      margin-bottom: 25px;
+      user-select: none;
+      line-height: 1;
+    }
+
+    .back-circle-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      color: var(--gold-accent);
+      border-color: var(--gold-accent);
+      transform: scale(1.05);
+    }
+
+    .investment-plans-wrapper .container {
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .investment-plans-wrapper .title {
+      text-align: center;
+      margin-bottom: 35px;
+    }
+
+    .investment-plans-wrapper .title h2 {
+      font-size: 42px;
+      margin-bottom: 10px;
+    }
+
+    .investment-plans-wrapper .title p {
+      color: #b9c2df;
+      font-size: 17px;
+    }
+
+    .plans {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .plan {
+      background: white;
+      color: #111;
+      border-radius: 18px;
+      padding: 28px 22px;
+      text-align: center;
+      cursor: pointer;
+      transition: 0.3s ease;
+      border: 2px solid transparent;
+    }
+
+    .plan:hover {
+      transform: translateY(-8px);
+      border-color: #1677ff;
+      box-shadow: 0 10px 35px rgba(0, 119, 255, 0.25);
+    }
+
+    .plan.active {
+      border-color: #1677ff;
+      box-shadow: 0 0 25px rgba(0, 119, 255, 0.35);
+    }
+
+    .plan-icon {
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .plan-icon img {
+      width: 50px;
+      height: 50px;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+
+    .plan h3 {
+      color: #1267db;
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .plan p {
+      color: #555;
+      margin-bottom: 20px;
+    }
+
+    .return {
+      background: #eaf3ff;
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 20px;
+    }
+
+    .return strong {
+      display: block;
+      font-size: 32px;
+      color: #1267db;
+    }
+
+    .choose-btn {
+      width: 100%;
+      border: none;
+      padding: 13px;
+      border-radius: 9px;
+      background: #1267db;
+      color: white;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .details {
+      display: none;
+      background: white;
+      color: #111;
+      margin: 35px auto 0;
+      padding: 35px;
+      border-radius: 18px;
+      max-width: 700px;
+      animation: showDetails 0.3s ease;
+    }
+
+    .details.show {
+      display: block;
+    }
+
+    .details h3 {
+      color: #1267db;
+      font-size: 28px;
+      margin-bottom: 10px;
+    }
+
+    .details .big-return {
+      font-size: 45px;
+      font-weight: bold;
+      color: #1267db;
+      margin: 15px 0;
+    }
+
+    .features {
+      list-style: none;
+      margin: 20px 0;
+    }
+
+    .features li {
+      padding: 9px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .features li::before {
+      content: "✓";
+      color: #16a34a;
+      font-weight: bold;
+      margin-right: 10px;
+    }
+
+    .confirm-btn {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      background: #1267db;
+      color: white;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    @keyframes showDetails {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .intro-wrapper {
+      background-color: #f4f4f6;
+      width: 100%;
+    }
+
+    .intro-section {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 60px 24px;
+      color: #222222;
+      line-height: 1.75;
+    }
+
+    .intro-section h3 {
+      font-size: 32px;
+      font-weight: 800;
+      margin-bottom: 24px;
+      color: #111111;
+    }
+
+    .intro-section p {
+      font-family: "Georgia", "Times New Roman", serif;
+      font-size: 19px;
+      color: #333333;
+      margin-bottom: 22px;
+    }
+
+    .why-choose-us {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 70px 24px 40px 24px;
+      text-align: center;
+    }
+
+    .why-choose-us-title {
+      font-size: 38px;
+      font-weight: 800;
+      color: #111111;
+      margin-bottom: 48px;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 32px;
+    }
+
+    .card-box {
+      background-color: #ffffff;
+      border: 1px solid #e5e7eb;
+      border-radius: 14px;
+      padding: 36px 28px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card-box:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .card-icon {
+      width: 64px;
+      height: 64px;
+      object-fit: contain;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #111111;
+      margin-bottom: 12px;
+    }
+
+    .card-text {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #555555;
+    }
+
+    /* FINANCIAL CALCULATOR */
+    .financial-calculator {
+      width: 100%;
+      padding: 30px 15px 60px 15px;
+      background: #050b2e;
+      color: white;
+    }
+
+    .calculator-container {
+      max-width: 680px;
+      margin: auto;
+    }
+
+    .calculator-heading {
+      text-align: center;
+      margin-bottom: 18px;
+    }
+
+    .calculator-heading span {
+      display: inline-block;
+      color: #4d9cff;
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 1.5px;
+      margin-bottom: 4px;
+    }
+
+    .calculator-heading h2 {
+      font-size: 24px;
+      margin-bottom: 6px;
+    }
+
+    .calculator-heading p {
+      color: #b9c2df;
+      font-size: 13px;
+    }
+
+    .calculator-card {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      background: white;
+      color: #111;
+      padding: 12px 16px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    }
+
+    .calculator-form {
+      background: #f7faff;
+      border: 1px solid #e2ebf8;
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+
+    .calculator-field {
+      margin-bottom: 8px;
+    }
+
+    .calculator-field label {
+      display: block;
+      font-size: 12px;
+      font-weight: bold;
+      margin-bottom: 4px;
+      color: #222;
+    }
+
+    .calculator-field select {
+      width: 100%;
+      padding: 6px 8px;
+      border: 1px solid #ccd7e6;
+      border-radius: 6px;
+      background: white;
+      font-size: 13px;
+      outline: none;
+      color: #222;
+      cursor: pointer;
+    }
+
+    .amount-input,
+    .duration-display {
+      display: flex;
+      align-items: center;
+      background: white;
+      border: 1px solid #ccd7e6;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+
+    .amount-input span {
+      padding-left: 8px;
+      font-size: 12px;
+      font-weight: bold;
+      color: #1267db;
+    }
+
+    .amount-input input {
+      width: 100%;
+      padding: 6px 8px;
+      border: none;
+      outline: none;
+      font-size: 13px;
+      background: transparent;
+      color: #333;
+      font-weight: bold;
+    }
+
+    .duration-display {
+      padding: 6px 8px;
+      background: #f0f4f9;
+      color: #333;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .selected-rate {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #eaf3ff;
+      border-radius: 6px;
+      padding: 6px 10px;
+      margin-top: 4px;
+    }
+
+    .selected-rate span {
+      color: #555;
+      font-size: 12px;
+    }
+
+    .selected-rate strong {
+      color: #1267db;
+      font-size: 14px;
+    }
+
+    .calculator-result {
+      padding: 4px 0 0 4px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .result-heading span {
+      font-size: 10px;
+      font-weight: bold;
+      color: #1267db;
+      letter-spacing: 0.5px;
+    }
+
+    .result-heading h3 {
+      font-size: 16px;
+      margin-top: 0;
+    }
+
+    .result-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .result-row span {
+      color: #666;
+      font-size: 12px;
+    }
+
+    .result-row strong {
+      color: #1267db;
+      font-size: 13px;
+    }
+
+    .result-total {
+      margin-top: 6px;
+      padding: 8px 10px;
+      background: #eaf3ff;
+      border-radius: 8px;
+    }
+
+    .result-total span {
+      display: block;
+      color: #555;
+      font-size: 11px;
+      margin-bottom: 2px;
+    }
+
+    .result-total strong {
+      display: block;
+      color: #1267db;
+      font-size: 18px;
+    }
+
+    .calculator-disclaimer {
+      color: #777;
+      font-size: 9.5px;
+      line-height: 1.3;
+      margin-top: 6px;
+    }
+
+    /* COMPARISON SECTION */
+    .comparison-wrapper {
+      background: #f5f5f5;
+      padding: 50px 20px 60px 20px;
+      display: flex;
+      justify-content: center;
+    }
+
+    .comparison-container {
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+    }
+
+    .comparison-card {
+      background: #ffffff;
+      width: 100%;
+      border: 2px solid #e0e0e0;
+      border-radius: 16px;
+      padding: 24px 20px;
+      text-align: center;
+      box-sizing: border-box;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+      position: relative;
+    }
+
+    .comparison-card-bottom {
+      margin-top: -30px;
+      z-index: 1;
+    }
+
+    .comparison-card-top {
+      z-index: 1;
+      padding-bottom: 40px;
+    }
+
+    .comparison-card-title {
+      font-size: 22px;
+      font-weight: 700;
+      color: #111111;
+      margin: 0 0 8px 0;
+    }
+
+    .comparison-underline {
+      width: 60px;
+      height: 3px;
+      background-color: var(--gold-accent);
+      margin: 0 auto 16px auto;
+      border-radius: 2px;
+    }
+
+    .comparison-card-image {
+      width: 100%;
+      max-width: 320px;
+      height: auto;
+      margin: 0 auto;
+      display: block;
+      border-radius: 8px;
+    }
+
+    .divider-circle {
+      width: 60px;
+      height: 60px;
+      background-color: #000000;
+      color: #ffffff;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 600;
+      margin-top: -30px;
+      z-index: 2;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      border: 3px solid #ffffff;
+    }
+
+    /* REFERRAL SECTION */
+    .referral-section {
+      width: 100%;
+      padding: 60px 20px 80px 20px;
+      background: #f8faff;
+      display: flex;
+      justify-content: center;
+    }
+
+    .referral-container {
+      max-width: 1100px;
+      width: 100%;
+      text-align: center;
+    }
+
+    .referral-tag {
+      display: inline-block;
+      background: #eaf3ff;
+      color: #1267db;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      padding: 6px 16px;
+      border-radius: 30px;
+      margin-bottom: 16px;
+      text-transform: uppercase;
+    }
+
+    .referral-title {
+      font-size: 36px;
+      font-weight: 800;
+      color: #111111;
+      margin-bottom: 12px;
+    }
+
+    .referral-subtitle {
+      font-size: 18px;
+      color: #555555;
+      max-width: 640px;
+      margin: 0 auto 48px auto;
+      line-height: 1.5;
+    }
+
+    .referral-cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 28px;
+      margin-bottom: 48px;
+    }
+
+    .referral-card {
+      background: #ffffff;
+      border: 1px solid #e9edf4;
+      border-radius: 16px;
+      padding: 32px 24px 28px 24px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      text-align: center;
+    }
+
+    .referral-card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+    }
+
+    .referral-icon-box {
+      width: 52px;
+      height: 52px;
+      background: #050b2e;
+      color: #ffffff;
+      font-size: 22px;
+      font-weight: 700;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 18px auto;
+    }
+
+    .referral-card-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #111111;
+      margin-bottom: 8px;
+    }
+
+    .referral-card-text {
+      font-size: 15px;
+      line-height: 1.6;
+      color: #555555;
+      margin: 0;
+    }
+
+    .referral-btn {
+      padding: 14px 34px;
+      font-size: 16px;
+      font-weight: 700;
+      color: #111111;
+      background: var(--gold-accent);
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      display: inline-block;
+      transition: background 0.2s ease, transform 0.15s ease;
+      box-shadow: 0 4px 12px rgba(247, 166, 0, 0.35);
+    }
+
+    /* ======================================================
+       NEW ACCOUNT DASHBOARD STYLES (Black & Gold Theme)
+       ====================================================== */
+    .account-dashboard-wrapper {
+      background-color: var(--db-bg);
+      color: var(--db-text);
+      min-height: 100vh;
+      padding: 1rem 1.5rem 2rem;
+    }
+
+    .account-dashboard {
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    /* Dashboard Header */
+    .db-header {
+      background-color: var(--db-card);
+      border: 1px solid var(--db-border);
+      border-radius: 12px;
+      padding: 1rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 12px var(--shadow-color);
+      margin-bottom: 1.5rem;
+    }
+
+    .db-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .db-brand-logo {
+      width: 45px;
+      height: 45px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid var(--gold-primary);
+    }
+
+    .db-brand-name {
+      font-size: 1.3rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      background: var(--gold-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .db-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .db-home-btn {
+      background: none;
+      border: 1px solid var(--gold-primary);
+      color: var(--gold-primary);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      text-decoration: none;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .db-home-btn:hover {
+      background-color: var(--gold-primary);
+      color: #000;
+    }
+
+    .db-lang-select {
+      background-color: var(--db-bg);
+      color: var(--db-text);
+      border: 1px solid var(--gold-primary);
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      outline: none;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+
+    .db-theme-btn {
+      background: none;
+      border: 1px solid var(--gold-primary);
+      color: var(--gold-primary);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+    }
+
+    .db-theme-btn:hover {
+      background-color: var(--gold-primary);
+      color: #000;
+    }
+
+    /* Account Balance Card */
+    .db-balance-card {
+      background-color: var(--db-card);
+      border: 1px solid var(--db-border);
+      border-radius: 12px;
+      padding: 2rem;
+      text-align: center;
+      box-shadow: 0 8px 24px var(--shadow-color);
+      position: relative;
+      overflow: hidden;
+      margin-bottom: 1.5rem;
+    }
+
+    .db-balance-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--gold-gradient);
+    }
+
+    .db-balance-label {
+      font-size: 1rem;
+      color: var(--db-muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.5rem;
+    }
+
+    .db-balance-amount {
+      font-size: 3rem;
+      font-weight: 700;
+      color: var(--gold-primary);
+      margin-bottom: 1.5rem;
+    }
+
+    .db-action-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .db-btn {
+      padding: 12px 28px;
+      border-radius: 8px;
+      font-weight: 700;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      text-transform: uppercase;
+      font-size: 0.9rem;
+      letter-spacing: 0.5px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      border: none;
+    }
+
+    .db-btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .db-btn-gold {
+      background: var(--gold-gradient);
+      color: #000;
+      box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+    }
+
+    .db-btn-outline {
+      background: transparent;
+      color: var(--gold-primary);
+      border: 2px solid var(--gold-primary);
+    }
+
+    .db-btn-outline:hover {
+      background-color: var(--gold-primary);
+      color: #000;
+    }
+
+    /* Dashboard Stats Grid */
+    .db-stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .db-stat-card {
+      background-color: var(--db-card);
+      border: 1px solid var(--db-border);
+      padding: 1.5rem;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      position: relative;
+    }
+
+    .db-stat-icon {
+      width: 46px;
+      height: 46px;
+      border-radius: 10px;
+      background: rgba(212, 175, 55, 0.1);
+      color: var(--gold-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+    }
+
+    .db-stat-info {
+      flex: 1;
+    }
+
+    .db-stat-info h4 {
+      font-size: 0.8rem;
+      color: var(--db-muted);
+      margin-bottom: 4px;
+    }
+
+    .db-stat-info p {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--db-text);
+    }
+
+    .db-view-btn {
+      background: transparent;
+      color: var(--gold-primary);
+      border: 1px solid var(--gold-primary);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+
+    .db-view-btn:hover {
+      background: var(--gold-primary);
+      color: #000;
+    }
+
+    /* Dashboard ID Banner */
+    .dashboard-id-banner {
+      background: var(--db-card);
+      border: 1px solid var(--gold-primary);
+      padding: 12px 20px;
+      text-align: center;
+      color: var(--db-text);
+      font-size: 14px;
+      border-radius: 8px;
+      margin-bottom: 1.5rem;
+      display: none;
+      box-shadow: 0 0 20px rgba(212, 175, 55, 0.1);
+    }
+    .dashboard-id-banner span {
+      color: var(--gold-primary);
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+
+    /* ======================================================
+       PROFILE CARD WITH TOGGLEABLE MORE SECTION
+       ====================================================== */
+    .db-profile-card {
+      background-color: var(--db-card);
+      border: 1px solid var(--db-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px var(--shadow-color);
+      margin-bottom: 1.5rem;
+    }
+
+    .db-profile-top {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+    }
+
+    .db-profile-avatar {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: var(--gold-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #000;
+      flex-shrink: 0;
+    }
+
+    .db-profile-info {
+      flex: 1;
+    }
+
+    .db-profile-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--db-text);
+    }
+
+    .db-profile-id {
+      font-size: 0.85rem;
+      color: var(--db-muted);
+    }
+
+    .db-profile-toggle {
+      background: none;
+      border: none;
+      color: var(--gold-primary);
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: background 0.2s ease;
+    }
+
+    .db-profile-toggle:hover {
+      background: rgba(212, 175, 55, 0.1);
+    }
+
+    .db-profile-toggle .fa-chevron-up,
+    .db-profile-toggle .fa-chevron-down {
+      transition: transform 0.3s ease;
+    }
+
+    .db-profile-toggle .fa-chevron-up {
+      transform: rotate(180deg);
+    }
+
+    .db-profile-more {
+      overflow: hidden;
+      max-height: 0;
+      opacity: 0;
+      transition: max-height 0.4s ease, opacity 0.3s ease, margin 0.3s ease;
+      margin-top: 0;
+    }
+
+    .db-profile-more.open {
+      max-height: 200px;
+      opacity: 1;
+      margin-top: 1.2rem;
+    }
+
+    .db-profile-more-inner {
+      border-top: 1px solid var(--db-border);
+      padding-top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .db-profile-detail {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: var(--db-text);
+      font-size: 0.95rem;
+    }
+
+    .db-profile-detail i {
+      width: 20px;
+      color: var(--gold-primary);
+      font-size: 0.9rem;
+    }
+
+    .db-profile-detail span {
+      color: var(--db-muted);
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    /* AUTH MODAL & UI STYLES */
+    .auth-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(4px);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+      padding: 20px;
+    }
+
+    .auth-modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .auth-card {
+      background: var(--card-bg);
+      width: 100%;
+      max-width: 380px;
+      padding: 36px 28px 32px;
+      border-radius: 18px;
+      box-shadow: var(--shadow-soft);
+      text-align: center;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    .auth-modal-close {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: none;
+      border: none;
+      font-size: 22px;
+      color: var(--text-muted);
+      cursor: pointer;
+      line-height: 1;
+      padding: 4px;
+    }
+
+    .avatar-badge {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: var(--primary-gradient);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 16px;
+      box-shadow: 0 8px 20px rgba(180, 100, 200, 0.25);
+    }
+
+    .avatar-badge svg {
+      width: 44px;
+      height: 44px;
+      fill: #ffffff;
+    }
+
+    .auth-title {
+      font-size: 28px;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 24px;
+    }
+
+    .form-group {
+      text-align: left;
+      margin-bottom: 16px;
+    }
+
+    .label-wrapper {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    label {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+
+    .forgot-link {
+      font-size: 12px;
+      color: #6b63b5;
+      text-decoration: none;
+    }
+
+    .input-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-box svg {
+      position: absolute;
+      left: 16px;
+      width: 18px;
+      height: 18px;
+      stroke: var(--text-muted);
+      fill: none;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .input-box input {
+      width: 100%;
+      padding: 14px 16px 14px 44px;
+      border: 1px solid rgba(220, 215, 235, 0.6);
+      border-radius: 10px;
+      background: #ffffff;
+      font-size: 14px;
+      color: var(--text-main);
+      outline: none;
+      box-shadow: var(--shadow-input);
+      transition: all 0.2s ease;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      margin-top: 12px;
+      margin-bottom: 24px;
+      border: none;
+      border-radius: 10px;
+      background: var(--button-gradient);
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 6px 18px rgba(100, 80, 200, 0.3);
+    }
+
+    .auth-footer {
+      font-size: 13px;
+      color: var(--text-main);
+    }
+
+    .auth-footer a {
+      color: #5b50d6;
+      font-weight: 700;
+      text-decoration: none;
+      margin-left: 4px;
+    }
+
+    @media (max-width: 900px) {
+      .plans {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 600px) {
+      .main-title { font-size: 44px; }
+      .plans { grid-template-columns: 1fr; }
+      .investment-plans-wrapper .title h2 { font-size: 32px; }
+      .calculator-card { grid-template-columns: 1fr; padding: 12px; gap: 10px; }
+      .db-balance-amount { font-size: 2.2rem; }
+      .db-stats-grid { grid-template-columns: 1fr; }
+      .db-header { flex-direction: column; gap: 12px; }
+      .db-controls { width: 100%; justify-content: center; }
+      .db-profile-top { flex-wrap: wrap; }
+      .db-profile-toggle { margin-left: auto; }
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <!-- Dashboard ID Banner (shown after login) -->
+  <div class="dashboard-id-banner" id="dashboardBanner">
+    🔑 Your unique ID: <span id="userIdDisplay">---</span> &nbsp;|&nbsp; Welcome, <span id="userNameDisplay">User</span>
+  </div>
+
+  <!-- MAIN HOME PAGE VIEW -->
+  <div id="homePageView" class="page-view active-view">
+    <!-- HERO SECTION -->
+    <section class="hero-banner">
+      <nav class="navbar">
+        <div class="nav-left-group">
+          <button class="hamburger-btn" id="hamburgerBtn" aria-label="Open navigation menu">
+            <svg class="hamburger-icon" viewBox="0 0 24 24">
+              <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+            </svg>
+          </button>
+        </div>
+
+        <a href="#">
+          <img src="https://i.postimg.cc/Jt0KZHYw/6b8a9461-f280-4ffe-9dde-9e1fd1b9521a.jpg" alt="bitfly mining logo" class="brand-logo-right" />
+        </a>
+      </nav>
+
+      <!-- Side Navigation Drawer -->
+      <div class="nav-drawer" id="navDrawer">
+        <div class="drawer-header">
+          <a href="#" class="brand-container">
+            <img src="https://i.postimg.cc/Jt0KZHYw/6b8a9461-f280-4ffe-9dde-9e1fd1b9521a.jpg" alt="bitfly mining logo" class="brand-logo-right" style="height:36px; width:auto;" />
+            <span class="brand-name">bitfly <span class="brand-name-gold">mining</span></span>
+          </a>
+          <button class="close-btn" id="closeBtn" aria-label="Close menu">
+            <svg class="close-icon" viewBox="0 0 24 24">
+              <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            </svg>
+          </button>
+        </div>
+
+        <ul class="nav-links">
+          <li><a href="#" onclick="showPageView('homePageView'); closeMenu();">Home</a></li>
+          <!-- Nav links revealed after verification -->
+          <li id="navAccountLi" class="hidden"><a href="#" onclick="showPageView('accountPageView'); closeMenu();">Account</a></li>
+          <li id="navInvestmentPlansLi" class="hidden"><a href="#" onclick="showPageView('investmentPlansSection'); closeMenu();">Investment Plans</a></li>
+          <li><a href="#" id="sideAuthBtn">Sign Up / Login</a></li>
+          <li><a href="https://wa.me/237689222354" target="_blank" rel="noopener noreferrer">Contact Us</a></li>
+        </ul>
+      </div>
+
+      <div class="drawer-overlay" id="drawerOverlay"></div>
+
+      <div class="hero-content">
+        <p class="subtitle">Try bitfly mining and validate your own blocks on the blockchain</p>
+        <h1 class="main-title">bitfly <span class="gold-text">mining</span></h1>
+        <p class="description">The world's most innovative, unique and simple way to mine crypto. Start your one-click crypto mining journey today.</p>
+        <button class="glow-button" id="startNowBtn">Start Now</button>
+      </div>
+    </section>
+
+    <!-- INTRO -->
+    <div class="intro-wrapper">
+      <section class="intro-section">
+        <h3>bitfly mining</h3>
+        <p>bitfly mining represents the traditional approach to cryptocurrency mining, where computing power is used to validate blocks of cryptocurrency transactions and, in return, earn mining rewards.</p>
+        <p>Once earned, your mining rewards are credited to your dedicated mining account, where they can be converted into your preferred account currency. This streamlined conversion process makes managing your mining earnings simple and efficient, allowing for convenient deposits, withdrawals, and balance management without the need for manual currency conversion.</p>
+        <p>With bitfly mining, your mining rewards remain easy to manage, giving you a seamless experience from earning through to accessing your funds.</p>
+      </section>
+    </div>
+
+    <!-- WHY CHOOSE US -->
+    <section class="why-choose-us">
+      <h2 class="why-choose-us-title">Why Choose Us</h2>
+      <div class="cards-grid">
+        <div class="card-box">
+          <img src="https://i.postimg.cc/ZBj19TKb/IMG-4339.png" alt="Profit switching icon" class="card-icon" />
+          <h3 class="card-title">Profit switching</h3>
+          <p class="card-text">The NiceHash system automatically targets the most profitable coin for higher earnings.</p>
+        </div>
+        <div class="card-box">
+          <img src="https://i.postimg.cc/BLNd8qQq/IMG-4340.png" alt="Easy to Use icon" class="card-icon" />
+          <h3 class="card-title">Easy to Use</h3>
+          <p class="card-text">Our platform offers a convenient range of options for miners, designed to make managing your mining activities simple, efficient, and accessible. From monitoring your mining balance to managing deposits, withdrawals, and account preferences, everything is organized in one streamlined experience.</p>
+        </div>
+        <div class="card-box">
+          <img src="https://i.postimg.cc/ygnwJVYB/IMG-4341.png" alt="Competitive fees icon" class="card-icon" />
+          <h3 class="card-title">Competitive fees</h3>
+          <p class="card-text">Big miners enjoy bigger savings and withdrawal from our services.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FINANCIAL CALCULATOR -->
+    <section class="financial-calculator">
+      <div class="calculator-container">
+        <div class="calculator-heading">
+          <span>FINANCIAL CALCULATOR</span>
+          <h2>Estimate Your Daily Earnings</h2>
+          <p>Select a plan to view an estimated earnings projection over a 20-day period.</p>
+        </div>
+
+        <div class="calculator-card">
+          <div class="calculator-form">
+            <div class="calculator-field">
+              <label for="calcPlan">Investment Plan</label>
+              <select id="calcPlan" onchange="updateCalcRate()">
+                <option value="2.0" data-amount="1500" selected>Starter — FCFA 1,500 (2.0%/day)</option>
+                <option value="4.2" data-amount="3500">Regular — FCFA 3,500 (4.2%/day)</option>
+                <option value="8.82" data-amount="10000">Pro — FCFA 10,000 (8.82%/day)</option>
+                <option value="12.0" data-amount="30000">Elite — FCFA 30,000 (12.0%/day)</option>
+                <option value="18.0" data-amount="90000">Premium — FCFA 90,000 (18.0%/day)</option>
+                <option value="20.0" data-amount="200000">Ultimate — FCFA 200,000 (20.0%/day)</option>
+              </select>
+            </div>
+
+            <div class="calculator-field">
+              <label for="calcAmount">Investment Amount</label>
+              <div class="amount-input">
+                <span>FCFA</span>
+                <input type="number" id="calcAmount" readonly />
+              </div>
+            </div>
+
+            <div class="calculator-field">
+              <label for="calcDuration">Duration</label>
+              <div class="duration-display">
+                <span>20 Days (Daily Payouts)</span>
+              </div>
+            </div>
+
+            <div class="selected-rate">
+              <span>Estimated Daily Rate</span>
+              <strong id="homeCalcRate">2.0% / day</strong>
+            </div>
+          </div>
+
+          <div class="calculator-result">
+            <div class="result-heading">
+              <span>ESTIMATED VALUE</span>
+              <h3>Your Projection</h3>
+            </div>
+
+            <div class="result-row">
+              <span>Initial Investment</span>
+              <strong id="homeCalcPrincipal">FCFA 0</strong>
+            </div>
+            <div class="result-row">
+              <span>Estimated Daily Earnings</span>
+              <strong id="homeCalcDailyReturn">FCFA 0</strong>
+            </div>
+            <div class="result-row">
+              <span>Estimated Earnings (20 Days)</span>
+              <strong id="homeCalcTotalReturn">FCFA 0</strong>
+            </div>
+
+            <div class="result-total">
+              <span>Estimated Total Value</span>
+              <strong id="homeCalcTotal">FCFA 0</strong>
+            </div>
+
+            <p class="calculator-disclaimer">This calculator provides illustrative estimates based on the selected plan and stated daily rate. Actual results may vary and are not guaranteed.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- COMPARISON SECTION -->
+    <div class="comparison-wrapper">
+      <div class="comparison-container">
+        <div class="comparison-card comparison-card-top">
+          <h2 class="comparison-card-title">Individuals Mining</h2>
+          <div class="comparison-underline"></div>
+          <a href="https://postimg.cc/XpC8FRRr" target="_blank">
+            <img src="https://i.postimg.cc/XpC8FRRr/IMG-4351.png" alt="Individuals Mining" class="comparison-card-image">
+          </a>
+        </div>
+
+        <div class="divider-circle">And</div>
+
+        <div class="comparison-card comparison-card-bottom">
+          <h2 class="comparison-card-title" style="margin-top: 20px;">Mine as a Community</h2>
+          <div class="comparison-underline"></div>
+          <a href="https://postimg.cc/QFZqq6DV" target="_blank">
+            <img src="https://i.postimg.cc/QFZqq6DV/IMG-4352.png" alt="Mine as a Community" class="comparison-card-image">
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- REFERRAL PROGRAM SECTION -->
+    <section class="referral-section">
+      <div class="referral-container">
+        <span class="referral-tag">BOOST YOUR EARNINGS</span>
+        <h2 class="referral-title">Invite Friends & Earn Extra Commission</h2>
+        <p class="referral-subtitle">
+          Share your unique link, build your team, and earn instant commissions when your referrals start mining.
+        </p>
+
+        <div class="referral-cards-grid">
+          <div class="referral-card">
+            <div class="referral-icon-box">1</div>
+            <h3 class="referral-card-title">Share Your Link</h3>
+            <p class="referral-card-text">
+              Copy your personalized referral link from your dashboard and share it anywhere.
+            </p>
+          </div>
+
+          <div class="referral-card">
+            <div class="referral-icon-box">2</div>
+            <h3 class="referral-card-title">Friends Join & Mine</h3>
+            <p class="referral-card-text">
+              When they register and invest, they're automatically linked to your network.
+            </p>
+          </div>
+
+          <div class="referral-card">
+            <div class="referral-icon-box">3</div>
+            <h3 class="referral-card-title">Collect Instant Rewards</h3>
+            <p class="referral-card-text">
+              Get referral bonuses credited instantly — withdraw or reinvest them right away.
+            </p>
+          </div>
+        </div>
+
+        <div class="referral-cta">
+          <button class="referral-btn" onclick="openAuthModal('signup')">Get Your Referral Link</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- INVESTMENT PLANS FULL PAGE VIEW -->
+  <div class="investment-plans-wrapper page-view" id="investmentPlansSection">
+    <!-- Circle Back Arrow Button -->
+    <button class="back-circle-btn" onclick="showPageView('homePageView')" aria-label="Go Back">&lt;</button>
+
+    <div class="container">
+      <div class="title">
+        <h2>Investment Plans</h2>
+        <p>Choose a plan that suits your needs</p>
+      </div>
+
+      <!-- SIX PLANS -->
+      <div class="plans">
+        <!-- Starter -->
+        <div class="plan" onclick="selectPlan('Starter', '2.0% / day', 'FCFA 3,000', 'Starter investment plan', ['Instant activation', 'Daily account updates', 'Customer support'], event)">
+          <div class="plan-icon">
+            <img src="https://i.postimg.cc/TymLy4wq/D897ACCA-37DF-41B9-BC96-C97157230975.jpg" alt="Starter Plan Icon">
+          </div>
+          <h3>Starter</h3>
+          <p>Starter investment plan</p>
+          <div class="return">
+            <strong>2.0% / day</strong>
+          </div>
+          <button class="choose-btn">View Plan</button>
+        </div>
+
+        <!-- Regular -->
+        <div class="plan" onclick="selectPlan('Regular', '4.2% / day', 'FCFA 5,000', 'Standard investment plan', ['Instant activation', 'Daily account updates', 'Customer support'], event)">
+          <div class="plan-icon">
+            <img src="https://i.postimg.cc/Kk2KtDkB/D897ACCA-37DF-41B9-BC96-C97157230975.jpg" alt="Regular Plan Icon">
+          </div>
+          <h3>Regular</h3>
+          <p>Standard investment plan</p>
+          <div class="return">
+            <strong>4.2% / day</strong>
+          </div>
+          <button class="choose-btn">View Plan</button>
+        </div>
+
+        <!-- Pro -->
+        <div class="plan" onclick="selectPlan('Pro', '8.82% / day', 'FCFA 10,000', 'Advanced investment plan', ['Priority support', 'Account monitoring', 'Exclusive updates'], event)">
+          <div class="plan-icon">
+            <img src="https://i.postimg.cc/06mM6BQZ/D897ACCA-37DF-41B9-BC96-C97157230975.jpg" alt="Pro Plan Icon">
+          </div>
+          <h3>Pro</h3>
+          <p>Advanced investment plan</p>
+          <div class="return">
+            <strong>8.82% / day</strong>
+          </div>
+          <button class="choose-btn">View Plan</button>
+        </div>
+
+        <!-- Elite -->
+        <div class="plan" onclick="selectPlan('Elite', '12.0% / day', 'FCFA 30,000', 'Premium investment plan', ['Priority support', 'Exclusive updates', 'Advanced account features'], event)">
+          <div class="plan-icon">
+            <img src="https://i.postimg.cc/LYpqj3Yf/D897ACCA-37DF-41B9-BC96-C97157230975.jpg" alt="Elite Plan Icon">
+          </div>
+          <h3>Elite</h3>
+          <p>Premium investment plan</p>
+          <div class="return">
+            <strong>12.0% / day</strong>
+          </div>
+          <button class="choose-btn">View Plan</button>
+        </div>
+
+        <!-- Premium -->
+        <div class="plan" onclick="selectPlan('Premium', '18.0% / day', 'FCFA 90,000', 'Highest-tier investment plan', ['VIP support', 'Exclusive updates', 'Premium account features'], event)">
+          <div class="plan-icon">
+            <img src="https://i.postimg.cc/TL6ynJLD/D897ACCA-37DF-41B9-BC96-C97157230975.jpg" alt="Premium Plan Icon">
+          </div>
+          <h3>Premium</h3>
+          <p>Highest-tier investment plan</p>
+          <div class="return">
+            <strong>18.0% / day</strong>
+          </div>
+          <button class="choose-btn">View Plan</button>
+        </div>
+
+        <!-- Ultimate -->
+        <div class="plan" onclick="selectPlan('Ultimate', '20.0% / day', 'FCFA 200,000', 'Ultimate-tier investment plan', ['VIP support', 'Dedicated Manager', 'Premium account features'], event)">
+          <div class="plan-icon">
+            <img src="https://i.postimg.cc/WFvD0wFG/D897ACCA-37DF-41B9-BC96-C97157230975.jpg" alt="Ultimate Plan Icon">
+          </div>
+          <h3>Ultimate</h3>
+          <p>Ultimate-tier investment plan</p>
+          <div class="return">
+            <strong>20.0% / day</strong>
+          </div>
+          <button class="choose-btn">View Plan</button>
+        </div>
+      </div>
+
+      <!-- SELECTED PLAN DETAILS -->
+      <div class="details" id="planDetails">
+        <h3 id="detailName"></h3>
+        <p id="detailDescription"></p>
+        <div class="big-return" id="detailReturn"></div>
+        <p style="margin-top: 8px;">
+          Minimum investment: <strong id="detailMinimum"></strong>
+        </p>
+        <ul class="features" id="detailFeatures"></ul>
+        <button class="confirm-btn" onclick="continuePlan()">Continue</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEW ACCOUNT DASHBOARD PAGE VIEW (Black & Gold Theme) -->
+  <div id="accountPageView" class="page-view account-dashboard-wrapper">
+    <div class="account-dashboard">
+
+      <!-- Dashboard Header -->
+      <header class="db-header">
+        <div class="db-brand">
+          <img src="https://i.postimg.cc/Jt0KZHYw/6b8a9461-f280-4ffe-9dde-9e1fd1b9521a.jpg" alt="Bitfly Mining Logo" class="db-brand-logo">
+          <span class="db-brand-name">Bitfly Mining</span>
+        </div>
+
+        <div class="db-controls">
+          <!-- Home Icon Button (Left of Language Settings) -->
+          <button class="db-home-btn" onclick="showPageView('homePageView')" title="Return Home">
+            <i class="fa-solid fa-house"></i>
+          </button>
+
+          <!-- Global Language Selector -->
+          <select id="dbLangSelect" class="db-lang-select" onchange="changeDashboardLanguage(this.value)">
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+            <option value="de">Deutsch</option>
+          </select>
+
+          <!-- Global Dark / Light Mode Toggle -->
+          <button class="db-theme-btn" id="dbThemeToggleBtn" onclick="toggleDashboardTheme()" title="Toggle Theme">
+            <i class="fa-solid fa-sun" id="dbThemeIcon"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- PROFILE CARD WITH AVATAR, NAME, ID, AND TOGGLEABLE MORE SECTION -->
+      <div class="db-profile-card">
+        <div class="db-profile-top">
+          <div class="db-profile-avatar" id="dbProfileAvatar">JD</div>
+          <div class="db-profile-info">
+            <div class="db-profile-name" id="dbProfileName">Jane Doe</div>
+            <div class="db-profile-id" id="dbProfileId">ID: 84920481</div>
+          </div>
+          <button class="db-profile-toggle" id="dbProfileToggle" onclick="toggleProfileMore()">
+            <span id="dbToggleText">More</span>
+            <i class="fa-solid fa-chevron-down" id="dbToggleIcon"></i>
+          </button>
+        </div>
+
+        <!-- Toggleable More Section -->
+        <div class="db-profile-more" id="dbProfileMore">
+          <div class="db-profile-more-inner">
+            <div class="db-profile-detail">
+              <i class="fa-solid fa-envelope"></i>
+              <span>Email:</span>
+              <span id="dbProfileEmail">jane.doe@example.com</span>
+            </div>
+            <div class="db-profile-detail">
+              <i class="fa-solid fa-phone"></i>
+              <span>Phone:</span>
+              <span id="dbProfilePhone">+237 689 222 354</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Account Balance Section -->
+      <section class="db-balance-card">
+        <div class="db-balance-label" id="dbBalanceLabel">Total Account Balance</div>
+        <div class="db-balance-amount" id="dbAccountBalance">$0.00</div>
+        
+        <div class="db-action-buttons">
+          <a href="payment.html" class="db-btn db-btn-gold">
+            <i class="fa-solid fa-wallet"></i>
+            <span id="dbDepositText">Deposit</span>
+          </a>
+          <a href="payment.html" class="db-btn db-btn-outline">
+            <i class="fa-solid fa-arrow-up-right-from-square"></i>
+            <span id="dbWithdrawText">Withdraw</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- Account Metrics Overview Grid -->
+      <section class="db-stats-grid">
+        <div class="db-stat-card">
+          <div class="db-stat-icon"><i class="fa-solid fa-microchip"></i></div>
+          <div class="db-stat-info">
+            <h4 id="dbActiveMinersText">Active Hashrate</h4>
+            <p>0.00 TH/s</p>
+          </div>
+          <button class="db-view-btn" onclick="showPageView('investmentPlansSection')">View</button>
+        </div>
+
+        <div class="db-stat-card">
+          <div class="db-stat-icon"><i class="fa-solid fa-chart-line"></i></div>
+          <div class="db-stat-info">
+            <h4 id="dbDailyEarningsText">Est. Daily Earnings</h4>
+            <p>$0.00</p>
+          </div>
+        </div>
+
+        <div class="db-stat-card">
+          <div class="db-stat-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+          <div class="db-stat-info">
+            <h4 id="dbTotalWithdrawnText">Total Withdrawn</h4>
+            <p>$0.00</p>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- AUTHENTICATION UI MODAL -->
+  <div class="auth-modal-overlay" id="authModal">
+    <div class="auth-card">
+      <button class="auth-modal-close" onclick="closeAuthModal()">&times;</button>
+      
+      <div class="avatar-badge">
+        <svg viewBox="0 0 24 24">
+          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+        </svg>
+      </div>
+
+      <div id="signup-view">
+        <h2 class="auth-title">Sign Up</h2>
+        <form id="signupForm">
+          <div class="form-group">
+            <label>Name</label>
+            <div class="input-box">
+              <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+              <input type="text" id="signUpName" placeholder="Enter your name" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Email</label>
+            <div class="input-box">
+              <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+              <input type="email" id="signUpEmail" placeholder="Enter your email" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Phone Number</label>
+            <div class="input-box">
+              <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>
+              <input type="tel" id="signUpPhone" placeholder="Enter your phone number" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Password</label>
+            <div class="input-box">
+              <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              <input type="password" id="signUpPassword" placeholder="Create a password" required>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-submit">Sign Up</button>
+        </form>
+
+        <p class="auth-footer">Already have an account? <a href="#" onclick="toggleView('login')">Log In &gt;</a></p>
+      </div>
+
+      <div id="login-view" class="hidden">
+        <h2 class="auth-title">Login</h2>
+        <form id="loginForm">
+          <div class="form-group">
+            <div class="label-wrapper">
+              <label>Email</label>
+              <a href="#" class="forgot-link">Forgot password?</a>
+            </div>
+            <div class="input-box">
+              <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+              <input type="email" id="loginEmail" placeholder="Enter your email" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Password</label>
+            <div class="input-box">
+              <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              <input type="password" id="loginPassword" placeholder="Enter your password" required>
+            </div>
+          </div>
+
+          <button type="submit" class="btn-submit">Log In</button>
+        </form>
+
+        <p class="auth-footer">Not registered yet? <a href="#" onclick="toggleView('signup')">Sign Up &gt;</a></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================
+       SUPABASE CONFIGURATION
+    ========================================================= */
+    const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+    const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+    
+    let supabaseClient = null;
+    if (SUPABASE_URL !== 'YOUR_SUPABASE_URL' && window.supabase) {
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    }
+
+    // DOM Elements
+    const dashboardBanner = document.getElementById('dashboardBanner');
+    const userIdDisplay = document.getElementById('userIdDisplay');
+    const userNameDisplay = document.getElementById('userNameDisplay');
+
+    // Banner auto-hide timer
+    let bannerHideTimer = null;
+
+    // Profile More toggle state
+    let profileMoreOpen = false;
+
+    // Track if user just signed up to control redirect
+    let justSignedUp = false;
+
+    // Navigation View Switcher
+    function showPageView(viewId) {
+      document.querySelectorAll('.page-view').forEach(view => {
+        view.classList.remove('active-view');
+      });
+      const targetView = document.getElementById(viewId);
+      if (targetView) {
+        targetView.classList.add('active-view');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // Toggle Profile More Section
+    function toggleProfileMore() {
+      profileMoreOpen = !profileMoreOpen;
+      const moreSection = document.getElementById('dbProfileMore');
+      const toggleText = document.getElementById('dbToggleText');
+      const toggleIcon = document.getElementById('dbToggleIcon');
+
+      if (profileMoreOpen) {
+        moreSection.classList.add('open');
+        toggleText.textContent = 'Less';
+        toggleIcon.className = 'fa-solid fa-chevron-up';
+      } else {
+        moreSection.classList.remove('open');
+        toggleText.textContent = 'More';
+        toggleIcon.className = 'fa-solid fa-chevron-down';
+      }
+    }
+
+    // Unlock User Navigation Items and show dashboard
+    function unlockUserExperience(user, redirectToPlans = false) {
+      // Show nav links
+      document.getElementById('navInvestmentPlansLi')?.classList.remove('hidden');
+      document.getElementById('navAccountLi')?.classList.remove('hidden');
+      
+      // Update Banner Display
+      if (user) {
+        const uid = user.id || '84920481';
+        const uName = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
+        const uEmail = user.email || 'jane.doe@example.com';
+        const uPhone = user.user_metadata?.phone || '+237 689 222 354';
+
+        userIdDisplay.textContent = uid;
+        userNameDisplay.textContent = uName;
+
+        // Update Profile Card
+        const initials = uName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) || 'JD';
+        document.getElementById('dbProfileAvatar').textContent = initials;
+        document.getElementById('dbProfileName').textContent = uName;
+        document.getElementById('dbProfileId').textContent = 'ID: ' + uid.substring(0, 8);
+        document.getElementById('dbProfileEmail').textContent = uEmail;
+        document.getElementById('dbProfilePhone').textContent = uPhone;
+
+        // Show banner
+        dashboardBanner.style.display = 'block';
+
+        // Clear any existing timer
+        if (bannerHideTimer) {
+          clearTimeout(bannerHideTimer);
+        }
+
+        // Hide banner after 5 seconds and redirect based on parameter
+        bannerHideTimer = setTimeout(() => {
+          dashboardBanner.style.display = 'none';
+          // Redirect to investment plans if just signed up, otherwise show account
+          if (redirectToPlans || justSignedUp) {
+            showPageView('investmentPlansSection');
+            justSignedUp = false; // Reset flag
+          } else {
+            showPageView('accountPageView');
+          }
+        }, 5000);
+
+        // Update dashboard account info
+        document.getElementById('dbAccountBalance').textContent = '$' + (Math.random() * 5000 + 100).toFixed(2);
+      }
+
+      // Always show account page first, then redirect will happen after banner
+      showPageView('accountPageView');
+    }
+
+    // Monitor Supabase Authentication State
+    if (supabaseClient) {
+      supabaseClient.auth.getSession().then(({ data: { session } }) => {
+        if (session?.user) {
+          unlockUserExperience(session.user, false);
+        }
+      });
+
+      supabaseClient.auth.onAuthStateChange((event, session) => {
+        if (session?.user) {
+          const redirectToPlans = (event === 'SIGNED_IN' || event === 'USER_UPDATED');
+          unlockUserExperience(session.user, redirectToPlans);
+        } else {
+          document.getElementById('navInvestmentPlansLi')?.classList.add('hidden');
+          document.getElementById('navAccountLi')?.classList.add('hidden');
+          showPageView('homePageView');
+          dashboardBanner.style.display = 'none';
+          if (bannerHideTimer) {
+            clearTimeout(bannerHideTimer);
+            bannerHideTimer = null;
+          }
+        }
+      });
+    }
+
+    /* Auth Form Submissions */
+    document.getElementById('signupForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('signUpEmail').value;
+      const password = document.getElementById('signUpPassword').value;
+      const name = document.getElementById('signUpName').value;
+      const phone = document.getElementById('signUpPhone').value;
+
+      justSignedUp = true; // Set flag for redirect
+
+      if (supabaseClient) {
+        const { data, error } = await supabaseClient.auth.signUp({
+          email,
+          password,
+          options: { 
+            data: { 
+              full_name: name,
+              phone: phone
+            } 
+          }
+        });
+        if (error) {
+          alert('Sign Up Error: ' + error.message);
+          justSignedUp = false;
+        } else {
+          alert('Registration successful!');
+          closeAuthModal();
+          // The auth state change will handle the redirect
+        }
+      } else {
+        // Demo mode: simulate signup
+        const fakeId = 'usr_' + Math.random().toString(36).substring(2, 10);
+        unlockUserExperience({ 
+          id: fakeId, 
+          email: email, 
+          user_metadata: { 
+            full_name: name,
+            phone: phone
+          } 
+        }, true);
+        closeAuthModal();
+      }
+    });
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+
+      justSignedUp = false; // Not a signup
+
+      if (supabaseClient) {
+        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        if (error) {
+          alert('Login Error: ' + error.message);
+        } else {
+          closeAuthModal();
+        }
+      } else {
+        // Demo mode: simulate login
+        const fakeId = 'usr_' + Math.random().toString(36).substring(2, 10);
+        unlockUserExperience({ 
+          id: fakeId, 
+          email: email, 
+          user_metadata: { 
+            full_name: email.split('@')[0],
+            phone: '+237 689 222 354'
+          } 
+        }, false);
+        closeAuthModal();
+      }
+    });
+
+    /* Side Drawer Navigation Logic */
+    const hamburgerBtn = document.getElementById('hamburgerBtn');
+    const closeBtn = document.getElementById('closeBtn');
+    const navDrawer = document.getElementById('navDrawer');
+    const drawerOverlay = document.getElementById('drawerOverlay');
+
+    function openMenu() {
+      navDrawer.classList.add('open');
+      drawerOverlay.classList.add('active');
+    }
+
+    function closeMenu() {
+      navDrawer.classList.remove('open');
+      drawerOverlay.classList.remove('active');
+    }
+
+    hamburgerBtn.addEventListener('click', openMenu);
+    closeBtn.addEventListener('click', closeMenu);
+    drawerOverlay.addEventListener('click', closeMenu);
+
+    /* Auth Modal Toggle Logic */
+    const authModal = document.getElementById('authModal');
+    const startNowBtn = document.getElementById('startNowBtn');
+    const sideAuthBtn = document.getElementById('sideAuthBtn');
+
+    function openAuthModal(defaultView = 'signup') {
+      toggleView(defaultView);
+      authModal.classList.add('active');
+      closeMenu();
+    }
+
+    function closeAuthModal() {
+      authModal.classList.remove('active');
+    }
+
+    startNowBtn.addEventListener('click', () => openAuthModal('signup'));
+    sideAuthBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      openAuthModal('signup');
+    });
+
+    function toggleView(view) {
+      const signupView = document.getElementById('signup-view');
+      const loginView = document.getElementById('login-view');
+      
+      if (view === 'login') {
+        signupView.classList.add('hidden');
+        loginView.classList.remove('hidden');
+      } else {
+        loginView.classList.add('hidden');
+        signupView.classList.remove('hidden');
+      }
+    }
+
+    /* Investment Plans Functions */
+    function selectPlan(name, returnRate, minimum, description, features, evt) {
+      document.querySelectorAll(".plan").forEach(function(card) {
+        card.classList.remove("active");
+      });
+
+      if (evt && evt.currentTarget) {
+        evt.currentTarget.classList.add("active");
+      }
+
+      document.getElementById("detailName").textContent = name + " Plan";
+      document.getElementById("detailDescription").textContent = description;
+      document.getElementById("detailReturn").textContent = returnRate;
+      document.getElementById("detailMinimum").textContent = minimum;
+
+      const featureList = document.getElementById("detailFeatures");
+      featureList.innerHTML = "";
+      features.forEach(function(feature) {
+        const li = document.createElement("li");
+        li.textContent = feature;
+        featureList.appendChild(li);
+      });
+
+      const detailsContainer = document.getElementById("planDetails");
+      detailsContainer.classList.add("show");
+      detailsContainer.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+
+    function continuePlan() {
+      const activeCard = document.querySelector(".plan.active");
+      if (!activeCard) {
+        alert("Please select a plan first.");
+        return;
+      }
+
+      const planName = document.getElementById("detailName").textContent;
+      const planPrice = document.getElementById("detailMinimum").textContent;
+
+      localStorage.setItem("selectedPlanName", planName);
+      localStorage.setItem("selectedPlanPrice", planPrice);
+
+      window.location.href = "payment.html";
+    }
+
+    /* Calculator Logic */
+    let homeCalcRate = 2.0;
+    const DURATION_DAYS = 20;
+
+    function updateCalcRate() {
+      const planSelect = document.getElementById("calcPlan");
+      const selectedOption = planSelect.options[planSelect.selectedIndex];
+      homeCalcRate = Number(selectedOption.value);
+      const planAmount = Number(selectedOption.getAttribute("data-amount"));
+      document.getElementById("calcAmount").value = planAmount;
+      document.getElementById("homeCalcRate").textContent =
+        homeCalcRate.toFixed(2).replace(/\.?0+$/, '') + "% / day";
+      calculateHomeInvestment();
+    }
+
+    function calculateHomeInvestment() {
+      const amount = Number(document.getElementById("calcAmount").value);
+      if (!amount || amount <= 0) {
+        document.getElementById("homeCalcPrincipal").textContent = "FCFA 0";
+        document.getElementById("homeCalcDailyReturn").textContent = "FCFA 0";
+        document.getElementById("homeCalcTotalReturn").textContent = "FCFA 0";
+        document.getElementById("homeCalcTotal").textContent = "FCFA 0";
+        return;
+      }
+      const dailyProfit = amount * (homeCalcRate / 100);
+      const totalProfit = dailyProfit * DURATION_DAYS;
+      const estimatedTotal = amount + totalProfit;
+
+      document.getElementById("homeCalcPrincipal").textContent = formatHomeCurrency(amount);
+      document.getElementById("homeCalcDailyReturn").textContent = formatHomeCurrency(dailyProfit);
+      document.getElementById("homeCalcTotalReturn").textContent = formatHomeCurrency(totalProfit);
+      document.getElementById("homeCalcTotal").textContent = formatHomeCurrency(estimatedTotal);
+    }
+
+    function formatHomeCurrency(value) {
+      return "FCFA " + Math.round(value).toLocaleString("fr-FR");
+    }
+
+    /* Dashboard Dark/Light Theme Toggle */
+    function toggleDashboardTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      
+      const themeIcon = document.getElementById('dbThemeIcon');
+      if (themeIcon) {
+        themeIcon.className = newTheme === 'dark' ? 'fa-solid fa-moon' : 'fa-solid fa-sun';
+      }
+    }
+
+    /* =========================================================
+       DASHBOARD LANGUAGE & THEME FUNCTIONS
+    ========================================================= */
+    const dbTranslations = {
+      en: {
+        balanceLabel: "Total Account Balance",
+        deposit: "Deposit",
+        withdraw: "Withdraw",
+        activeMiners: "Active Hashrate",
+        dailyEarnings: "Est. Daily Earnings",
+        totalWithdrawn: "Total Withdrawn",
+        more: "More",
+        less: "Less"
+      },
+      es: {
+        balanceLabel: "Saldo Total de la Cuenta",
+        deposit: "Depositar",
+        withdraw: "Retirar",
+        activeMiners: "Tasa de Hash Activa",
+        dailyEarnings: "Ganancias Diarias Est.",
+        totalWithdrawn: "Total Retirado",
+        more: "Más",
+        less: "Menos"
+      },
+      fr: {
+        balanceLabel: "Solde Total du Compte",
+        deposit: "Dépôt",
+        withdraw: "Retrait",
+        activeMiners: "Hachage Actif",
+        dailyEarnings: "Gains Quotidiens Est.",
+        totalWithdrawn: "Total Retiré",
+        more: "Plus",
+        less: "Moins"
+      },
+      de: {
+        balanceLabel: "Gesamtkontostand",
+        deposit: "Einzahlung",
+        withdraw: "Auszahlung",
+        activeMiners: "Aktive Hashrate",
+        dailyEarnings: "Geschätzter Tagesertrag",
+        totalWithdrawn: "Gesamtauszahlung",
+        more: "Mehr",
+        less: "Weniger"
+      }
+    };
+
+    function changeDashboardLanguage(lang) {
+      if (!dbTranslations[lang]) return;
+      
+      document.getElementById('dbBalanceLabel').innerText = dbTranslations[lang].balanceLabel;
+      document.getElementById('dbDepositText').innerText = dbTranslations[lang].deposit;
+      document.getElementById('dbWithdrawText').innerText = dbTranslations[lang].withdraw;
+      document.getElementById('dbActiveMinersText').innerText = dbTranslations[lang].activeMiners;
+      document.getElementById('dbDailyEarningsText').innerText = dbTranslations[lang].dailyEarnings;
+      document.getElementById('dbTotalWithdrawnText').innerText = dbTranslations[lang].totalWithdrawn;
+      
+      const toggleText = document.getElementById('dbToggleText');
+      if (toggleText) {
+        toggleText.innerText = profileMoreOpen ? dbTranslations[lang].less : dbTranslations[lang].more;
+      }
+    }
+  </script>
+  <script>
+const SUPABASE_URL = "https://jcuxmrkiyrnocmsphtwz.supabase.co";
+const SUPABASE_KEY = "sb_publishable__KwJfUjXVQ5qjGEx4OheJw_WuAe8q7q";
+
+const { createClient } = supabase;
+
+const supabaseClient = createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+</script>
+</body>
+</html>

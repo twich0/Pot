@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mining Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background: #0a0e14;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        .card {
+            max-width: 375px;
+            width: 100%;
+            background: #121a24;
+            border-radius: 32px;
+            padding: 28px 22px 30px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+            border: 1px solid #1f2a36;
+            position: relative;
+        }
+
+        /* Top-Right Close (X) Navigation Button */
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 22px;
+            width: 32px;
+            height: 32px;
+            background: #1a2533;
+            border: 1px solid #2a3a4a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #8a9aa8;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .close-btn:hover {
+            background: #253346;
+            color: #ffffff;
+            border-color: #3f5266;
+        }
+
+        /* No Plan Selected Warning */
+        .no-plan-warning {
+            background: #1a2533;
+            border: 1px solid #f5c842;
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .no-plan-warning.show {
+            display: flex;
+        }
+
+        .no-plan-warning .warning-icon {
+            color: #f5c842;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .no-plan-warning .warning-text {
+            color: #d0dce8;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .no-plan-warning .warning-text small {
+            color: #8a9aa8;
+            font-weight: 400;
+            display: block;
+            font-size: 11px;
+            margin-top: 2px;
+        }
+
+        /* Balance Section */
+        .balance-label {
+            font-size: 14px;
+            color: #8a9aa8;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+            margin-bottom: 4px;
+        }
+
+        .balance-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+        }
+
+        .balance-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #f5c842;
+            letter-spacing: 0.5px;
+        }
+
+        .balance-value .btc-symbol {
+            font-size: 22px;
+            font-weight: 600;
+            color: #f5c842;
+            margin-right: 2px;
+        }
+
+        .balance-sub {
+            font-size: 13px;
+            color: #5f7387;
+            font-weight: 400;
+            margin-top: -2px;
+        }
+
+        .balance-sub span {
+            background: #1a2533;
+            padding: 2px 12px;
+            border-radius: 30px;
+            font-size: 11px;
+            color: #8fa0b0;
+        }
+
+        /* Divider */
+        .divider {
+            border: none;
+            height: 1px;
+            background: #1f2a36;
+            margin: 16px 0 18px;
+        }
+
+        /* Mining Speed Section */
+        .mining-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2px;
+        }
+
+        .mining-label {
+            font-size: 14px;
+            color: #8a9aa8;
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+
+        .mining-speed {
+            font-size: 26px;
+            font-weight: 700;
+            color: #e8edf2;
+            letter-spacing: 0.5px;
+        }
+
+        .mining-speed .unit {
+            font-size: 15px;
+            font-weight: 500;
+            color: #8a9aa8;
+            margin-left: 4px;
+        }
+
+        .coin-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: #1a2533;
+            padding: 6px 16px 6px 14px;
+            border-radius: 30px;
+            border: 1px solid #2a3a4a;
+        }
+
+        .coin-badge .coin-icon {
+            width: 18px;
+            height: 18px;
+            background: #f5c842;
+            border-radius: 50%;
+            display: inline-block;
+            position: relative;
+        }
+
+        .coin-badge .coin-icon::after {
+            content: '₿';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 10px;
+            color: #121a24;
+            font-weight: 700;
+        }
+
+        .coin-badge span {
+            color: #d0dce8;
+            font-weight: 600;
+            font-size: 15px;
+        }
+
+        /* Speed row layout */
+        .speed-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 4px;
+        }
+
+        /* BTC rate */
+        .btc-rate {
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+            background: #0f1822;
+            padding: 8px 16px;
+            border-radius: 30px;
+            margin: 14px 0 18px;
+            border: 1px solid #1f2a36;
+            flex: 1;
+        }
+
+        .btc-rate .rate-label {
+            font-size: 13px;
+            color: #7a8d9e;
+        }
+
+        .btc-rate .rate-value {
+            font-size: 18px;
+            font-weight: 600;
+            color: #d0dce8;
+        }
+
+        .btc-rate .rate-value small {
+            font-size: 13px;
+            font-weight: 400;
+            color: #7a8d9e;
+        }
+
+        .mining-active {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #0f1822;
+            padding: 6px 14px 6px 12px;
+            border-radius: 30px;
+            border: 1px solid #1f2a36;
+            font-size: 13px;
+            color: #6fdfa0;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .mining-active .dot {
+            width: 8px;
+            height: 8px;
+            background: #6fdfa0;
+            border-radius: 50%;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        .mining-active.inactive {
+            color: #8a9aa8;
+        }
+
+        .mining-active.inactive .dot {
+            background: #5f7387;
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.3; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.2); }
+            100% { opacity: 0.3; transform: scale(0.8); }
+        }
+
+        /* Daily Limit */
+        .daily-limit {
+            background: #0f1822;
+            border-radius: 20px;
+            padding: 16px 18px 18px;
+            border: 1px solid #1f2a36;
+            margin-top: 4px;
+        }
+
+        .limit-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .limit-label {
+            font-size: 14px;
+            color: #8a9aa8;
+            font-weight: 500;
+        }
+
+        .limit-time {
+            font-size: 18px;
+            font-weight: 600;
+            color: #d0dce8;
+            background: #1a2533;
+            padding: 2px 14px;
+            border-radius: 30px;
+            border: 1px solid #2a3a4a;
+        }
+
+        .progress-bar {
+            background: #1a2533;
+            height: 6px;
+            border-radius: 20px;
+            margin: 10px 0 6px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            width: 9.3%;
+            height: 100%;
+            background: linear-gradient(90deg, #f5c842, #f7d875);
+            border-radius: 20px;
+            transition: width 0.5s ease;
+        }
+
+        .limit-footer {
+            display: flex;
+            justify-content: flex-end;
+            font-size: 11px;
+            color: #5f7387;
+        }
+
+        .limit-footer span {
+            background: #1a2533;
+            padding: 2px 12px;
+            border-radius: 30px;
+        }
+
+        /* Bottom row */
+        .bottom-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 16px;
+            font-size: 11px;
+            color: #3f5266;
+            letter-spacing: 0.3px;
+        }
+
+        .bottom-row span {
+            background: #0f1822;
+            padding: 3px 12px;
+            border-radius: 30px;
+            border: 1px solid #1a2533;
+        }
+
+        /* START MINING BUTTON */
+        .mine-btn {
+            width: 100%;
+            padding: 14px;
+            margin-top: 18px;
+            border: none;
+            border-radius: 60px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #121a24;
+            background: linear-gradient(135deg, #f5c842, #f7d875);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 20px rgba(245, 200, 66, 0.3);
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .mine-btn:hover:not(:disabled) {
+            transform: scale(1.02);
+            box-shadow: 0 6px 30px rgba(245, 200, 66, 0.5);
+        }
+
+        .mine-btn:active:not(:disabled) {
+            transform: scale(0.97);
+        }
+
+        .mine-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+
+        .mine-btn.mining {
+            background: linear-gradient(135deg, #4a6a5a, #2d4a3a);
+            color: #6fdfa0;
+            box-shadow: 0 4px 20px rgba(111, 223, 160, 0.2);
+        }
+
+        .mine-btn.mining:hover:not(:disabled) {
+            box-shadow: 0 6px 30px rgba(111, 223, 160, 0.3);
+        }
+
+        .mine-btn .btn-text {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mine-btn .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(111, 223, 160, 0.3);
+            border-top: 3px solid #6fdfa0;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .mine-btn.mining .spinner {
+            display: inline-block;
+        }
+
+        .mine-btn.mining .btn-text {
+            color: #6fdfa0;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Status row for mining button */
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin: 14px 0 18px;
+        }
+
+        /* Plan Info Display */
+        .plan-info {
+            background: #0f1822;
+            border: 1px solid #1f2a36;
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-bottom: 12px;
+            display: none;
+        }
+
+        .plan-info.show {
+            display: block;
+        }
+
+        .plan-info .plan-name {
+            color: #f5c842;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .plan-info .plan-details {
+            color: #8a9aa8;
+            font-size: 12px;
+            margin-top: 2px;
+        }
+
+        .plan-info .plan-details span {
+            color: #d0dce8;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <!-- Close (X) button returning to account page -->
+        <a href="account.html" class="close-btn" title="Back to Account">✕</a>
+
+        <!-- No Plan Selected Warning -->
+        <div class="no-plan-warning" id="noPlanWarning">
+            <span class="warning-icon">⚠️</span>
+            <div class="warning-text">
+                No Mining Plan Selected
+                <small>Please select a plan from the Investment Plans page first</small>
+            </div>
+        </div>
+
+        <!-- Plan Info Display -->
+        <div class="plan-info" id="planInfo">
+            <div class="plan-name" id="planNameDisplay">Starter Plan</div>
+            <div class="plan-details">
+                Rate: <span id="planRateDisplay">2.0%</span> daily &bull; 
+                Investment: <span id="planAmountDisplay">FCFA 3,000</span>
+            </div>
+        </div>
+
+        <!-- Your Balance -->
+        <div class="balance-label">Your Balance</div>
+        <div class="balance-row">
+            <span class="balance-value"><span class="btc-symbol">₿</span><span id="balanceDisplay">0.00000000500</span></span>
+            <span class="balance-sub"><span>BTC</span></span>
+        </div>
+
+        <hr class="divider">
+
+        <!-- Mining Speed -->
+        <div class="mining-header">
+            <span class="mining-label">Mining Speed</span>
+            <div class="coin-badge">
+                <span class="coin-icon"></span>
+                <span>Coin</span>
+            </div>
+        </div>
+
+        <div class="speed-row">
+            <span class="mining-speed"><span id="speedDisplay">15.90</span> <span class="unit">TH/s</span></span>
+        </div>
+
+        <!-- BTC Rate + Mining Active Status -->
+        <div class="status-row">
+            <div class="btc-rate" style="margin: 0;">
+                <span class="rate-label"></span>
+                <span class="rate-value"><span id="btcRateDisplay">0.00000003529</span> <small>BTC</small></span>
+            </div>
+            <div class="mining-active" id="miningStatus">
+                <span class="dot" id="statusDot"></span>
+                <span id="statusText">Mining Stopped</span>
+            </div>
+        </div>
+
+        <!-- Daily Mining Limit -->
+        <div class="daily-limit">
+            <div class="limit-row">
+                <span class="limit-label">Daily Mining Limit</span>
+                <span class="limit-time" id="limitTime">03:10 / 34:00</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="limit-footer">
+                <span>min left</span>
+            </div>
+        </div>
+
+        <!-- START MINING BUTTON -->
+        <button class="mine-btn" id="mineButton" disabled>
+            <span class="btn-text">
+                <span class="spinner"></span>
+                <span id="buttonLabel">⛏️ Start mining</span>
+            </span>
+        </button>
+
+        <!-- Bottom subtle info -->
+        <div class="bottom-row">
+            <span>⚡ <span id="bottomBalance">0.00000000500</span></span>
+            <span>₿ <span id="bottomSpeed">15.90</span> TH/s</span>
+        </div>
+
+    </div>
+
+    <script>
+        const mineBtn = document.getElementById('mineButton');
+        const buttonLabel = document.getElementById('buttonLabel');
+        const statusText = document.getElementById('statusText');
+        const statusDot = document.getElementById('statusDot');
+        const miningStatus = document.getElementById('miningStatus');
+        const balanceDisplay = document.getElementById('balanceDisplay');
+        const btcRateDisplay = document.getElementById('btcRateDisplay');
+        const speedDisplay = document.getElementById('speedDisplay');
+        const bottomBalance = document.getElementById('bottomBalance');
+        const bottomSpeed = document.getElementById('bottomSpeed');
+        const progressFill = document.getElementById('progressFill');
+        const limitTime = document.getElementById('limitTime');
+        const noPlanWarning = document.getElementById('noPlanWarning');
+        const planInfo = document.getElementById('planInfo');
+        const planNameDisplay = document.getElementById('planNameDisplay');
+        const planRateDisplay = document.getElementById('planRateDisplay');
+        const planAmountDisplay = document.getElementById('planAmountDisplay');
+
+        let isMining = false;
+        let miningInterval = null;
+        
+        // Get selected plan from localStorage
+        const selectedPlanName = localStorage.getItem('selectedPlanName') || null;
+        const selectedPlanPrice = localStorage.getItem('selectedPlanPrice') || null;
+        
+        // Parse plan rate from name (extract percentage)
+        let planRate = 2.0; // default
+        if (selectedPlanName) {
+            const match = selectedPlanName.match(/([\d.]+)%/);
+            if (match) {
+                planRate = parseFloat(match[1]);
+            }
+        }
+
+        // Check if plan is selected
+        const hasPlan = selectedPlanName !== null && selectedPlanPrice !== null;
+
+        // Base initial balance from localStorage
+        const savedBalance = parseFloat(localStorage.getItem('miningBalance')) || 0;
+        let balance = savedBalance > 0 ? savedBalance : 0.00000000500;
+
+        let btcRate = 0.00000003529;
+        let speed = 15.90;
+        let progress = 9.3;
+        let secondsMined = 190;
+        const totalLimitSeconds = 2040;
+
+        // Show/hide plan warning and info
+        if (hasPlan) {
+            noPlanWarning.classList.remove('show');
+            planInfo.classList.add('show');
+            planNameDisplay.textContent = selectedPlanName;
+            planRateDisplay.textContent = planRate + '%';
+            planAmountDisplay.textContent = selectedPlanPrice;
+            mineBtn.disabled = false;
+            buttonLabel.textContent = '⛏️ Start Mining';
+        } else {
+            noPlanWarning.classList.add('show');
+            planInfo.classList.remove('show');
+            mineBtn.disabled = true;
+            buttonLabel.textContent = '⛏️ Select Plan First';
+        }
+
+        // Calculate mining speed based on plan
+        function calculateSpeed() {
+            // Base speed 15.90 TH/s, multiplied by plan rate factor
+            const baseSpeed = 15.90;
+            const speedMultiplier = 1 + (planRate / 100) * 0.5;
+            return baseSpeed * speedMultiplier;
+        }
+
+        // Calculate daily earning rate based on plan
+        function calculateDailyEarning() {
+            const baseEarning = 0.00000000500;
+            return baseEarning * (1 + (planRate / 100) * 2);
+        }
+
+        if (hasPlan) {
+            speed = calculateSpeed();
+            // Set initial BTC rate based on plan
+            btcRate = 0.00000003529 * (1 + (planRate / 100) * 0.3);
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        function updateUI() {
+            balanceDisplay.textContent = balance.toFixed(11);
+            bottomBalance.textContent = balance.toFixed(11);
+            btcRateDisplay.textContent = btcRate.toFixed(11);
+            speedDisplay.textContent = speed.toFixed(2);
+            bottomSpeed.textContent = speed.toFixed(2);
+            
+            const progressPercent = (secondsMined / totalLimitSeconds) * 100;
+            progressFill.style.width = Math.min(progressPercent, 100) + '%';
+            limitTime.textContent = `${formatTime(secondsMined)} / ${formatTime(totalLimitSeconds)}`;
+        }
+
+        function startMining() {
+            if (isMining) return;
+            if (!hasPlan) {
+                alert('Please select a mining plan from the Investment Plans page first.');
+                return;
+            }
+            
+            isMining = true;
+            mineBtn.classList.add('mining');
+            buttonLabel.textContent = '⛏️ Mining...';
+            miningStatus.classList.remove('inactive');
+            statusText.textContent = 'Mining Active...';
+            statusDot.style.animation = 'pulse 1.5s ease-in-out infinite';
+            statusDot.style.background = '#6fdfa0';
+            
+            if (secondsMined >= totalLimitSeconds) {
+                secondsMined = 0;
+            }
+
+            miningInterval = setInterval(() => {
+                secondsMined += 1;
+                
+                // Increase balance based on plan rate
+                const dailyEarning = calculateDailyEarning();
+                const increment = (dailyEarning / 86400) * (1 + (Math.random() - 0.5) * 0.1);
+                balance += increment;
+                
+                // Save balance to localStorage
+                localStorage.setItem('miningBalance', balance.toString());
+
+                // BTC rate variation
+                btcRate += (Math.random() - 0.5) * 0.000000000001;
+                btcRate = Math.max(0.00000000001, btcRate);
+                
+                // Speed variation
+                speed = calculateSpeed() + (Math.random() - 0.5) * 0.5;
+                speed = Math.max(14.0, Math.min(18.0, speed));
+                
+                if (secondsMined >= totalLimitSeconds) {
+                    stopMining();
+                    statusText.textContent = 'Limit Reached';
+                    statusDot.style.animation = 'none';
+                    statusDot.style.background = '#f5c842';
+                    buttonLabel.textContent = '⏰ Limit Reached';
+                    mineBtn.classList.remove('mining');
+                    mineBtn.style.background = '#2a3a4a';
+                    mineBtn.style.color = '#8a9aa8';
+                    return;
+                }
+                
+                updateUI();
+            }, 1000);
+        }
+
+        function stopMining() {
+            isMining = false;
+            if (miningInterval) {
+                clearInterval(miningInterval);
+                miningInterval = null;
+            }
+            mineBtn.classList.remove('mining');
+            buttonLabel.textContent = '⛏️ Start Mining';
+            miningStatus.classList.add('inactive');
+            statusText.textContent = 'Mining Stopped';
+            statusDot.style.animation = 'none';
+            statusDot.style.background = '#5f7387';
+            mineBtn.style.background = 'linear-gradient(135deg, #f5c842, #f7d875)';
+            mineBtn.style.color = '#121a24';
+            
+            // Save final balance
+            localStorage.setItem('miningBalance', balance.toString());
+        }
+
+        mineBtn.addEventListener('click', function() {
+            if (!hasPlan) {
+                alert('Please select a mining plan from the Investment Plans page first.');
+                return;
+            }
+            
+            if (isMining) {
+                stopMining();
+            } else {
+                if (secondsMined >= totalLimitSeconds) {
+                    secondsMined = 0;
+                    balance = 0.00000000500;
+                    btcRate = 0.00000003529 * (1 + (planRate / 100) * 0.3);
+                    speed = calculateSpeed();
+                    updateUI();
+                    mineBtn.style.background = 'linear-gradient(135deg, #f5c842, #f7d875)';
+                    mineBtn.style.color = '#121a24';
+                    buttonLabel.textContent = '⛏️ Start Mining';
+                }
+                startMining();
+            }
+        });
+
+        // Initial UI update
+        updateUI();
+        
+        // Set initial inactive state
+        miningStatus.classList.add('inactive');
+        statusDot.style.animation = 'none';
+        statusDot.style.background = '#5f7387';
+        statusText.textContent = 'Mining Stopped';
+
+        // Listen for plan selection changes (in case user switches plans)
+        window.addEventListener('storage', function(e) {
+            if (e.key === 'selectedPlanName' || e.key === 'selectedPlanPrice') {
+                location.reload();
+            }
+        });
+    </script>
+</body>
+</html>
